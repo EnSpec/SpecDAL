@@ -89,7 +89,7 @@ class Collection(object):
                 # only read given path
                 if dirpath != directory:
                     continue
-            for f in filenames:
+            for f in sorted(filenames):
                 f_name, f_ext = splitext(f)
                 if f_ext not in list(ext):
                     # skip to next file

@@ -47,8 +47,8 @@ if args.debug:
 
 for f in args.input_files:
     assert os.path.isfile(f)
-    print('-'*80)
-    print('\n\n{:<20}\t{}\n'.format('file:', f))
+    print('\n\n'+'-'*80)
+    print('{:<20}\t{}\n'.format('file:', f))
 
     if args.list_measure_types or args.list_metadata_fields or args.raw:
         data, meta = read(f)
@@ -61,12 +61,12 @@ for f in args.input_files:
             print('metadata:')
             for key, item in meta.items():
                 print('  {:<20}\t{}'.format(key+':', item))
-            sys.exit(0)
+            continue
         if args.list_measure_types:
             print('{:<20}\t{}'.format('measure_types: ', data.columns.values))
         if args.list_metadata_fields:
             print('{:<20}\t{}'.format('metadata_fields: ', list(meta.keys())))
-        sys.exit(0)
+        continue
 
     s = Spectrum(name=f, filepath=f, measure_type=args.measure_type)
 

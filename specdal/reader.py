@@ -32,7 +32,7 @@ def read_sed(filepath, read_data=True, read_metadata=True, verbose=False):
     with open(abspath(expanduser(filepath)), 'r') as f:
         if verbose:
             print('reading {}'.format(filepath))
-        metadata['file'] = f
+        metadata['file'] = f.name
         metadata['instrument_type'] = 'SED'
         for i, line in enumerate(f):
             line = line.splitlines()[0].split(': ')
@@ -71,7 +71,7 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
         if verbose:
             print('reading {}'.format(filepath))
         if read_metadata:
-            metadata['file'] = f
+            metadata['file'] = f.name
             metadata['instrument_type'] = 'SIG'
         for i, line in enumerate(f):
             line = line.splitlines()[0].split('= ')
@@ -112,7 +112,7 @@ def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
     with open(abspath(expanduser(filepath)), 'rb') as f:
         if verbose:
             print('reading {}'.format(filepath))
-        metadata['file'] = f
+        metadata['file'] = f.name
         metadata['instrument_type'] = 'ASD'
         binconts = f.read()
         version = binconts[0:3].decode('utf-8')
