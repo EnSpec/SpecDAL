@@ -1,4 +1,0 @@
-numpy
-pandas >= 0.20.0
-matplotlib
-scipy
