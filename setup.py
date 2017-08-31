@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='specdal',
-      version='0.1.3',
+      version='0.1.4',
       description='Package for processing spectroscopy data',
       long_description=open('README.rst').read(),
       scripts=[
