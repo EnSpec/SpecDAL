@@ -28,8 +28,8 @@ parser.add_argument('-oi', '--output_individual', action='store_true',
 parser.add_argument('-oa', '--output_aggregates', action='store_true',
                     help='output group aggregates')
 # optional arguments
-parser.add_argument('-n', '--name', type=str, nargs=1, default='dataset',
-                    help='name of the dataset')
+parser.add_argument('-n', '--name', type=str, action='store',
+                    default='dataset', help='name of the dataset')
 # resampler
 parser.add_argument('-r', '--resample', default=None,
                     choices=['slinear', 'cubic'],
