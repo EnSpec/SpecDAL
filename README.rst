@@ -23,8 +23,11 @@ Features
      - Pico files (WIP)
 
    - spectral functions that operate on pandas objects
+     
      - interpolation
+       
      - jump_correction
+       
      - joining proximal measurements (WIP)
      
    - ``Spectrum`` and ``Collection`` classes which wrap around pandas
@@ -62,7 +65,6 @@ Via pip
 
    ::
       
-      $ pip3 install -r requirements.txt
       $ pip3 install specdal --upgrade
 
 
@@ -71,25 +73,27 @@ Development version
 
 1. Open terminal or Git-bash and navigate to the desired directory using
    ``cd <directory>``.
-2. The following command will create a directory ``SpecDAL-code``
+2. The following command will create a directory ``SpecDAL``
    containing ``SpecDAL``:
 
    ::
 
-      git clone https://github.com/EnSpec/SpecDAL-code.git
-
-3. To update the package, go to ``SpecDAL-code`` directory and run the
+      $ git clone https://github.com/EnSpec/SpecDAL.git
+      $ cd SpecDAL
+      
+3. To update the package, go to ``SpecDAL`` directory and run the
    following command:
 
    ::
 
-       git pull origin master
+       $ git pull origin master
 
 4. To install ``specdal`` in development mode
 
    ::
       
       $ source ~/venv/specdal/bin/activate # recommended (see virtualenv section)
+      $ pip3 install -r requirements.txt
       $ python setup.py develop
       
       $ ... # edit and test specdal

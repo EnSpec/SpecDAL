@@ -91,7 +91,8 @@ figdir = os.path.join(outdir, 'figures')
 assert os.path.exists(indir)
 if args.debug is True:
     import shutil
-    shutil.rmtree('./specdal_output/')
+    if os.path.isdir('./specdal_output/'):
+        shutil.rmtree('./specdal_output/')
 assert not os.path.exists(outdir)
 # make output directories
 for d in (outdir, datadir, figdir):
