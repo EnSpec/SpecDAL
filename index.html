@@ -1,111 +1,238 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-    <link rel="stylesheet" href="./css/bootstrap.min.css">
-    <link rel="stylesheet" href="./css/specdal.css">
-    <link href='https://fonts.googleapis.com/css?family=Lato:400,300'
-          rel='stylesheet' type='text/css'>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <title>SpecDAL</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SpecDAL bootstrap page</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/scrolling-nav.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
 </head>
 
-<body>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6 text-left">
-                <h1 class="specdal_title">SpecDAL</h1>
-                <h3 class="specdal_subtitle">gh-pages bort Python library for field spectroscopy data</h3>
-            </div>
-        </div>
+<!-- The #page-top ID is part of the scrolling feature - the data-spy and data-target are part of the built-in Bootstrap scrollspy function -->
 
-        <div class="row">
-            <div class="col-md-9">
-                <hr>
-            </div>
-        </div>
+<body id="page-top" data-spy="scroll" data-target=".navbar-fixed-top">
 
-        <div class="row">
-            <div class="col-md-9">
-                <h3 class="specdal_section">Introduction</h3>
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand page-scroll" href="#page-top"><font size="6"><b><cone>S<ctwo>p<cthree>e<cfour>c<cfive>D<csix>A<cseven>L</b></font></p></a>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col-md-9">
-                <p>SpecDAL is python library/toolkit for the the analysis of
-                field spectroscopy data. It currently includes classes/functions
-                for importing data from various file formats, processing the
-                data, plotting the data and exporting the data into ascii files.
-                The classes in SpecDAL can be easily configured
-                (programatically) into custom processing pipelines.</p>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-9">
-                <h3 class='specdal_link_text'>
-                    <!-- <a href="https://github.com/SpecDAL/specdal"
-                       target="_blank"> -->
-                    <a href="https://github.com/EnSpec/SpecDAL-code"
-                       target="_blank">
-                        Code
-                    </a>
-                </h3>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-9">
-                <h3 class='specdal_link_text'>
-                    <a href="https://specdal.readthedocs.io"
-                       target="_blank">
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    <!-- Hidden li included to remove active class from about link when scrolled up past about section -->
+                    <li class="hidden">
+                        <a class="page-scroll" href="#page-top"></a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="https://github.com/SpecDAL/specdal"
+                          target="_blank">
+                          Code
+                        </a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="https://specdal.readthedocs.io"
+                        target="_blank">
                         Documentation
-                    </a>
-                </h3>
+                      </a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#functionality">Functionality</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#examples">Examples</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#installation">Installation</a>
+                    </li>
+                    <li>
+                      <a class="page-scroll" href="#relatedprojects">Related Projects</a>
+                  </li>
+                  <li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Intro Section -->
+    <section id="intro" class="intro-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>What Is SpecDAL?</h1>
+                    <h3 class="text-muted">-a Python toolkit for processing field spectroscopy data-</h3><br>
+                    <p>SpecDAL is a Python 3.5 library for preparing and processing environmental spectroscopy data.
+                      It includes drivers for reading file formats from common portable field spectrometers as well as functions for filtering, resampling, and aggregating spectra. SpecDAL is
+                      inspired by <a href="http://www.gdal.org/" target="_blank">GDAL</a> and <a href="https://github.com/serbinsh/R-FieldSpectra" target="_blank"> R-FieldSpectra</a>.
+                      Supported file formats and functionality are always growing.</p>
+                </div>
             </div>
         </div>
+    </section>
 
-        <div class="row">
-            <div class="col-md-9">
-                <h3 class='specdal_link_text'>
-                    <a href="related.html"
-                       target="_blank">
-                        Related
-                    </a>
-                </h3>
+    <!-- Functionality Section -->
+    <section id="functionality" class="functionality-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Current and Future Functionality</h1><br>
+                    <p>SpecDAL can read file formats from ASD, Spectra Vista, and Spectral Evolution spectrometers.
+                      We hope to soon have drivers for Ocean Optics, UniSpec, and <a href="http://www.exeter.ac.uk/media/universityofexeter/esi/documents/uavmeetingpapers/A._MacArthur_Dual-field-of-view_spectrometer_system_for_reflectance_&_fluorescence_measurement.pdf" target="_blank"> Piccolo</a> spectrometers.
+                      Current functionality includes filtering, jump correction and splicing, overlap blending, and resampling.</p>
+                      <p>We hope to add the following functionality:</p>
+                      <ul>
+                        <li>grow the list of supported file formats</li>
+                        <li>create command line utility programs for the most common processing tasks</li>
+                        <li>create example workflow scripts to encourage consistent processing</li>
+                        <li>create a class model that supports the internal storage of wavelength, radiance, and other transformation models</li>
+                        <li>develop a model transformation class to allow statistical models (e.g. plant chemistry) to be stored internally and applied in real time</li>
+                        <li>develop functionality to seamlessly translate files between supported formats</li>
+                        <li>begin development of Spectral Information System software with a comprehensive GUI for data visualization, analysis, and processing</li>
+                        <li>create a non-proprietary open file format standard that allows data from different instruments to be directly exchanged and compared</li>
+                        <li>create language bindings for other languages like R, Java, Ruby, C++</li>
+                      </ul>
+                    <div class="panel-group">
+                </div>
             </div>
         </div>
+    </section>
 
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <br />
-        <div class="row">
-            <div class="col-md-9">
-                <h3 class='specdal_link_text'>
-                    Acknowledgements
-                </h3>
+    <!-- Examples Section -->
+    <section id="examples" class="examples-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Examples</h1><br>
+                    <p>We've written a few "pipeline" scripts to suit our needs.
+                      We'll get these into the Github repo soon.
+                      Usage of pipeline scripts looks like this:</p>
+                    <pre>
+usage: pipeline_ASD_processing.py [-h] --input_directory INPUT_DIRECTORY
+                                  [--subset_wavelength_range SUBSET_WAVELENGTH_RANGE SUBSET_WAVELENGTH_RANGE]
+                                  [--jumpcorrection_wavelengths JUMPCORRECTION_WAVELENGTHS JUMPCORRECTION_WAVELENGTHS]
+                                  [--jumpcorrection_stablezone JUMPCORRECTION_STABLEZONE]
+                                  --grouping_output_name
+                                  GROUPING_OUTPUT_NAME --grouping_pattern
+                                  GROUPING_PATTERN [--recursive]
+
+optional arguments:
+  -h, --help    show this help message and exit
+  --input_directory INPUT_DIRECTORY
+  --subset_wavelength_range SUBSET_WAVELENGTH_RANGE SUBSET_WAVELENGTH_RANGE
+  --jumpcorrection_wavelengths JUMPCORRECTION_WAVELENGTHS JUMPCORRECTION_WAVELENGTHS
+  --jumpcorrection_stablezone JUMPCORRECTION_STABLEZONE
+  --grouping_output_name GROUPING_OUTPUT_NAME
+  --grouping_pattern GROUPING_PATTERN
+                     e.g. *-X OR *_X for leaf level averaging
+  --recursive</pre>
+                </div>
             </div>
         </div>
+    </section>
 
-        <br />
-        <br />
-        <div class="row">
-            <div class="col-md-2">
-                <img class="img-responsive" src="./images/nasa_color.png">
-            </div>
-            <div class="col-md-2">
-                <img class="img-responsive" src="./images/uw_vert.png">
+    <!-- Installation Section -->
+    <section id="installation" class="installation-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Installation</h1><br>
+                    <p>We do not yet have a proper installer, but you can clone the
+                      <a href="https://specdal.readthedocs.io/en/latest/installation.html" target="_blank">SpecDAL Github repo.</a></p>
+                </div>
             </div>
         </div>
+    </section>
 
+    <!-- Collaborators & Related Projects Section -->
+    <section id="relatedprojects" class="relatedprojects-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Collaborators & Related Projects</h1><br>
+                      </div>
+                    </div><br>
+            <div class="container-fluid">
+              <div class="row-fluid">
+                <div class="col-sm-3 col-med-3 col-lg-3">
+                        <a href="http://cce.nasa.gov/terrestrial_ecology/index.html" target="_blank">
+                          <figure1>
+                            <img class="img-responsive" src="./images/nasatest.png"</img><br>
+                            <figcaption1><href="http://cce.nasa.gov/terrestrial_ecology/index.html" target="_blank">
+                            <h5>NASA Terrestrial <br>Ecology</h5></figcaption1>
+                          </figure1>
+                          </a>
+                          </div>
+                <div class="col-sm-3 col-med-3 col-lg-3">
+                        <a href="http://labs.russell.wisc.edu/townsend/" target="_blank">
+                          <figure2>
+                            <img class="img-responsive" src="./images/uw_vert.png"</img><br>
+                            <figcaption2><href="http://labs.russell.wisc.edu/townsend/" target="_blank">
+                            <h5>Townsend Lab</h5></figcaption2>
+                          </figure2>
+                          </a>
+                          </div>
+                <div class="col-sm-3 col-med-3 col-lg-3">
+                          <a href="http://www.neonscience.org/science-design/collection-methods/airborne-remote-sensing" target="_blank">
+                            <figure3>
+                              <img class="img-responsive" src="./images/neontop.png"</img><br>
+                              <figcaption3><href="http://www.neonscience.org/science-design/collection-methods/airborne-remote-sensing" target="_blank">
+                              <h5>NEON Airborne Remote Sensing</h5></figcaption3>
+                            </figure3>
+                          </a>
+                            </div>
+                <div class="col-sm-3 col-med-3 col-lg-3">
+                          <a href="https://ecosis.org/" target="_blank">
+                            <figure4>
+                              <img class="img-responsive" src="./images/EcoSISorg.png"</img><br>
+                          <figcaption4><href="https://ecosis.org/" target="_blank">
+                              <h5>EcoSIS Spectral Library</h5></figcaption4>
+                            </figure4>
+                          </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    </div>
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- Scrolling Nav JavaScript -->
+    <script src="js/jquery.easing.min.js"></script>
+    <script src="js/scrolling-nav.js"></script>
+
 </body>
+
 </html>
