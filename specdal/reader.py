@@ -58,9 +58,11 @@ def read_sed(filepath, read_data=True, read_metadata=True, verbose=False):
             list(map(int, raw_metadata['Integration'].split(','))))
         ################################################################################
         metadata['measurement_type'] = raw_metadata['Measurement']
-        metadata['gps_time'] = None
+        metadata['gps_time_tgt'] = None
+        metadata['gps_time_ref'] = None
         if raw_metadata['GPS Time'] != 'n/a':
-            metadata['gps_time'] = raw_metadata['GPS Time']
+            # TODO: WILL THIS BE A TUPLE?
+            metadata['gps_time_tgt'] = raw_metadata['GPS Time']
         metadata['wavelength_range'] = tuple(map(int, raw_metadata['Wavelength Range'].split(',')))
     return data, metadata
 
@@ -110,9 +112,10 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
             list(map(float, raw_metadata['integration'].split(', '))))
         ################################################################################
         metadata['measurement_type'] = raw_metadata['units'].split(', ')[0]
-        metadata['gps_time'] = None
+        metadata['gps_time_tgt'] = None
+        metadata['gps_time_ref'] = None
         if raw_metadata['gpstime'] != ',':
-            metadata['gps_time'] = tuple(
+            metadata['gps_time_ref'], metadata['gps_time_tgt'] = tuple(
                 map(float, raw_metadata['gpstime'].replace(' ', '').split(',')))
         metadata['wavelength_range'] = None
         if read_data:
@@ -196,7 +199,8 @@ def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
             # metadata
             metadata['integration_time'] = integration_time
             metadata['measurement_type'] = spectrum_type
-            metadata['gps_time'] = gps_timestamp
+            metadata['gps_time_tgt'] = gps_timestamp
+            metadata['gps_time_ref'] = None
             metadata['wavelength_range'] = (wavestart, wavestop)
             # metadata['splice'] = (splice1, splice2)
             # metadata['resolution'] = wavestep

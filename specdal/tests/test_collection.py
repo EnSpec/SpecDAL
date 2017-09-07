@@ -123,38 +123,38 @@ class collectionTests(unittest.TestCase):
                                              index=pd.Index([1, 2, 3, 4],
                                                             name='wavelength'),
                                              name='pct_reflect'),
-                      metadata={'gps_time':(1, 1)})
+                      metadata={'gps_time_tgt':1})
         s2 = Spectrum(name='s2',
                       measurement= pd.Series([10, 11, 12, 13],
                                              index=pd.Index([1, 2, 3, 4],
                                                             name='wavelength'),
                                              name='pct_reflect'),
-                      metadata={'gps_time':(1, 5)})
+                      metadata={'gps_time_tgt':5})
         s3 = Spectrum(name='s3',
                       measurement= pd.Series([100, 200, 300, 400],
                                              index=pd.Index([1, 2, 3, 4],
                                                             name='wavelength'),
                                              name='pct_reflect'),
-                      metadata={'gps_time':(1, 10)})
+                      metadata={'gps_time_tgt':10})
         base = Collection(name='base', spectra=[s1, s2, s3])
         s4 = Spectrum(name='s4',
                       measurement= pd.Series([1, 2, 3, 4],
                                              index=pd.Index([1, 2, 3, 4],
                                                             name='wavelength'),
                                              name='pct_reflect'),
-                      metadata={'gps_time':(1, 2)})
+                      metadata={'gps_time_tgt':2})
         s5 = Spectrum(name='s5',
                       measurement= pd.Series([10, 11, 12, 13],
                                              index=pd.Index([1, 2, 3, 4],
                                                             name='wavelength'),
                                              name='pct_reflect'),
-                      metadata={'gps_time':(1, 5)})
+                      metadata={'gps_time_tgt':5})
         s6 = Spectrum(name='s6',
                       measurement= pd.Series([100, 200, 300, 400],
                                              index=pd.Index([1, 2, 3, 4],
                                                             name='wavelength'),
                                              name='pct_reflect'),
-                      metadata={'gps_time':(1, 9)})
+                      metadata={'gps_time_tgt':9})
         rover = Collection(name='rover', spectra=[s4, s5, s6])
         proximal = proximal_join(base, rover)
         proximal_df_correct = pd.DataFrame({'s4':[1.0, 1.0, 1.0, 1.0],

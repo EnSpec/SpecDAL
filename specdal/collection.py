@@ -51,7 +51,7 @@ def df_to_collection(df, name, measure_type='pct_reflect'):
                           metadata=metadata_dict[spectrum_name]))
     return c
 
-def proximal_join(base_coll, rover_coll, on='gps_time', direction='nearest'):
+def proximal_join(base_coll, rover_coll, on='gps_time_tgt', direction='nearest'):
     '''
     Perform proximal join and return a new collection
     '''
@@ -124,19 +124,16 @@ class Collection(object):
         """
         if fields is None:
             fields = ['file', 'instrument_type', 'integration_time',
-                      'measurement_type', 'gps_time', 'wavelength_range']
+                      'measurement_type', 'gps_time_tgt', 'gps_time_ref',
+                      'wavelength_range']
         meta_dict = {}
         for field in fields:
-            for s in self.spectra:
-                assert field in s.metadata
-            if field == 'gps_time':
-                meta_dict['gps_time_ref'] = [s.metadata['gps_time'][0] for s in self.spectra]
-                meta_dict['gps_time_tgt'] = [s.metadata['gps_time'][1] for s in self.spectra]
-                continue
-            meta_dict[field] = [s.metadata[field] for s in self.spectra]
+            meta_dict[field] = [s.metadata[field] if field in s.metadata
+                                else None for s in self.spectra]
         meta_df = pd.DataFrame(meta_dict, index=[s.name for s in self.spectra])
         if data:
-            result = pd.merge(meta_df, self.data.transpose(), left_index=True, right_index=True)
+            result = pd.merge(meta_df, self.data.transpose(),
+                              left_index=True, right_index=True)
         else:
             result = meta_df
         return result
