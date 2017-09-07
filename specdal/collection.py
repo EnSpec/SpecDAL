@@ -3,7 +3,7 @@
 # pandas.DataFrame.
 import pandas as pd
 import numpy as np
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from .spectrum import Spectrum
 from itertools import groupby
 from .reader import read
@@ -17,10 +17,53 @@ import os
 def separator_keyfun(spectrum, separator, indices):
     elements = spectrum.name.split(separator)
     return separator.join([elements[i] for i in indices])
+
 def separator_with_filler_keyfun(spectrum, separator, indices, filler='.'):
     elements = spectrum.name.split(separator)
     return separator.join([elements[i] if i in indices else
                            fill for i in range(len(elements))])
+
+def df_to_collection(df, name, measure_type='pct_reflect'):
+    '''
+    Create a collection from a pandas.DataFrame
+    
+    Params
+    ------
+    df: pd.DataFrame
+        Must have spectrum.name as index and metadata or wavelengths as columns
+    
+    Returns
+    -------
+    c: specdal.Collection object
+    '''
+    c = Collection(name=name, measure_type=measure_type)
+    wvl_idx = df.columns.map(str).str.isdigit()
+    wave_cols = df.columns[wvl_idx]
+    meta_cols = df.columns[~wvl_idx]
+    metadata_dict = defaultdict(lambda: None)
+    if len(meta_cols) > 0:
+        metadata_dict = df[meta_cols].transpose().to_dict()
+    measurement_dict = df[wave_cols].transpose().to_dict('series')
+    for spectrum_name in df.index:
+        c.append(Spectrum(name=spectrum_name,
+                          measurement=measurement_dict[spectrum_name],
+                          measure_type=measure_type,
+                          metadata=metadata_dict[spectrum_name]))
+    return c
+
+def proximal_join(base_coll, rover_coll, on='gps_time', direction='nearest'):
+    '''
+    Perform proximal join and return a new collection
+    '''
+    # get dataframes with gps timestamps
+    joined = pd.merge_asof(rover_coll.data_with_meta(data=False, fields=[on]).reset_index(),
+                      base_coll.data_with_meta(data=False, fields=[on]).reset_index(),
+                      on='gps_time_tgt', direction=direction, suffixes=('_rover', '_base'))
+    rover_df = rover_coll.data[joined['index_rover']]
+    base_df = base_coll.data[joined['index_base']]
+    base_df.columns = rover_df.columns
+    proximal_coll = df_to_collection((rover_df/base_df).transpose(), name=rover_coll.name)
+    return proximal_coll
 
 ################################################################################
 # main Collection class
@@ -64,13 +107,16 @@ class Collection(object):
         assert spectrum.name not in self._spectra
         assert isinstance(spectrum, Spectrum)
         self._spectra[spectrum.name] = spectrum
-    def data_with_meta(self, fields=None):
+    def data_with_meta(self, data=True, fields=None):
         """
         Get dataframe with additional columns for metadata fields
         
         Params
         ------
-        fields: name of metadata fields to include as columns
+        data: boolean
+            whether to return the measurement data or not
+        fields: list
+            name of metadata fields to include as columns
         
         Returns
         -------
@@ -89,7 +135,11 @@ class Collection(object):
                 continue
             meta_dict[field] = [s.metadata[field] for s in self.spectra]
         meta_df = pd.DataFrame(meta_dict, index=[s.name for s in self.spectra])
-        return pd.merge(meta_df, self.data.transpose(), left_index=True, right_index=True)
+        if data:
+            result = pd.merge(meta_df, self.data.transpose(), left_index=True, right_index=True)
+        else:
+            result = meta_df
+        return result
 
     ##################################################
     # object methods
