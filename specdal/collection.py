@@ -64,6 +64,33 @@ class Collection(object):
         assert spectrum.name not in self._spectra
         assert isinstance(spectrum, Spectrum)
         self._spectra[spectrum.name] = spectrum
+    def data_with_meta(self, fields=None):
+        """
+        Get dataframe with additional columns for metadata fields
+        
+        Params
+        ------
+        fields: name of metadata fields to include as columns
+        
+        Returns
+        -------
+        pd.DataFrame: self.data with additional columns
+        """
+        if fields is None:
+            fields = ['file', 'instrument_type', 'integration_time',
+                      'measurement_type', 'gps_time', 'wavelength_range']
+        meta_dict = {}
+        for field in fields:
+            for s in self.spectra:
+                assert field in s.metadata
+            if field == 'gps_time':
+                meta_dict['gps_time_ref'] = [s.metadata['gps_time'][0] for s in self.spectra]
+                meta_dict['gps_time_tgt'] = [s.metadata['gps_time'][1] for s in self.spectra]
+                continue
+            meta_dict[field] = [s.metadata[field] for s in self.spectra]
+        meta_df = pd.DataFrame(meta_dict, index=[s.name for s in self.spectra])
+        return pd.merge(meta_df, self.data.transpose(), left_index=True, right_index=True)
+
     ##################################################
     # object methods
     def __getitem__(self, key):
