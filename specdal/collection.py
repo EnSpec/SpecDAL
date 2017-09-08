@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from collections import OrderedDict, defaultdict
 from .spectrum import Spectrum
+import specdal.operator as op
 from itertools import groupby
 from .reader import read
 import copy
@@ -51,19 +52,34 @@ def df_to_collection(df, name, measure_type='pct_reflect'):
                           metadata=metadata_dict[spectrum_name]))
     return c
 
-def proximal_join(base_coll, rover_coll, on='gps_time_tgt', direction='nearest'):
+def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
     '''
-    Perform proximal join and return a new collection
+    Perform proximal join and return a new collection.
+
+    Params
+    ------
+    
+    Returns
+    -------
+    result: proximally joined dataset
+        default: specdal.Collection object
+        if output_df is True: pandas.DataFrame object
     '''
-    # get dataframes with gps timestamps
-    joined = pd.merge_asof(rover_coll.data_with_meta(data=False, fields=[on]).reset_index(),
-                      base_coll.data_with_meta(data=False, fields=[on]).reset_index(),
-                      on='gps_time_tgt', direction=direction, suffixes=('_rover', '_base'))
-    rover_df = rover_coll.data[joined['index_rover']]
-    base_df = base_coll.data[joined['index_base']]
-    base_df.columns = rover_df.columns
-    proximal_coll = df_to_collection((rover_df/base_df).transpose(), name=rover_coll.name)
-    return proximal_coll
+    result = None
+    return_collection = False
+    name = 'proximally_joined'
+    if isinstance(base, Collection):
+        return_collection = True
+        base = base.data_with_meta(fields=[on]).reset_index()
+    if isinstance(rover, Collection):
+        return_collection = True
+        name = rover.name
+        rover = rover.data_with_meta(fields=[on]).reset_index()
+    result = op.proximal_join(base, rover, on=on, direction=direction)
+    print(result)
+    if return_collection:
+        result = df_to_collection(result, name=name)
+    return result
 
 ################################################################################
 # main Collection class
