@@ -1,0 +1,140 @@
+/*!
+ * Start Bootstrap - Scrolling Nav (http://startbootstrap.com/)
+ * Copyright 2013-2016 Start Bootstrap
+ * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
+ */
+
+body {
+    width: 100%;
+    height: 100%;
+}
+
+cone {
+  color: #9400D3;
+}
+
+ctwo {
+  color: #4B0082;
+}
+
+cthree {
+  color: #0000FF;
+}
+
+cfour {
+  color: #00FF00;
+}
+
+cfive {
+  color: #ebeb00;
+}
+
+csix {
+  color: #FF7F00;
+}
+
+cseven {
+  color: #FF0000;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+@media(min-width:767px) {
+    .navbar {
+        padding: 20px 0;
+        -webkit-transition: background .5s ease-in-out,padding .5s ease-in-out;
+        -moz-transition: background .5s ease-in-out,padding .5s ease-in-out;
+        transition: background .5s ease-in-out,padding .5s ease-in-out;
+    }
+
+    .top-nav-collapse {
+        padding: 0;
+    }
+}
+
+/* Demo Sections - You can use these as guides or delete them - the scroller will work with any sort of height, fixed, undefined, or percentage based.
+The padding is very important to make sure the scrollspy picks up the right area when scrolled to. Adjust the margin and padding of sections and children
+of those sections to manage the look and feel of the site. */
+
+figure1 .image {
+    width: 100%;
+}
+
+figure2 .image {
+    width: 100%;
+}
+
+figure3 .image {
+    width: 100%;
+}
+
+figure4 .image {
+    width: 100%;
+
+}
+
+figure1 {
+    text-align: center;
+    display: table;
+    max-width: 100%;
+    margin: 40px; /* not needed unless you want centered */
+}
+
+figure2 {
+    text-align: center;
+    display: table;
+    max-width: 100%;
+    margin: 40px; /* not needed unless you want centered */
+}
+
+figure3 {
+    text-align: center;
+    display: table;
+    max-width: 100%;
+    margin: 40px; /* not needed unless you want centered */
+}
+
+figure4 {
+    text-align: center;
+    display: table;
+    max-width: 100%;
+    margin: 40px; /* not needed unless you want centered */
+}
+
+.intro-section {
+    padding-top: 150px;
+    padding-bottom: 200px;
+    text-align: left;
+    background: #fff;
+}
+
+.functionality-section {
+    padding-top: 75px;
+    padding-bottom: 100px;
+    text-align: left;
+    background: #eee;
+}
+
+.examples-section {
+    padding-top: 75px;
+    padding-bottom: 100px;
+    text-align: left;
+    background: #fff;
+}
+
+.installation-section {
+    padding-top: 75px;
+    padding-bottom: 100px;
+    text-align: left;
+    background: #eee;
+}
+
+.relatedprojects-section {
+    padding-top: 75px;
+    padding-bottom: 100px;
+    text-align: left;
+    background: #fff;
+}
