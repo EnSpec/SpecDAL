@@ -3,8 +3,9 @@
 # pandas.DataFrame.
 import pandas as pd
 import numpy as np
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from .spectrum import Spectrum
+import specdal.operator as op
 from itertools import groupby
 from .reader import read
 import copy
@@ -17,10 +18,67 @@ import os
 def separator_keyfun(spectrum, separator, indices):
     elements = spectrum.name.split(separator)
     return separator.join([elements[i] for i in indices])
+
 def separator_with_filler_keyfun(spectrum, separator, indices, filler='.'):
     elements = spectrum.name.split(separator)
     return separator.join([elements[i] if i in indices else
                            fill for i in range(len(elements))])
+
+def df_to_collection(df, name, measure_type='pct_reflect'):
+    '''
+    Create a collection from a pandas.DataFrame
+    
+    Params
+    ------
+    df: pd.DataFrame
+        Must have spectrum.name as index and metadata or wavelengths as columns
+    
+    Returns
+    -------
+    c: specdal.Collection object
+    '''
+    c = Collection(name=name, measure_type=measure_type)
+    wave_cols, meta_cols = op.get_column_types(df)
+    metadata_dict = defaultdict(lambda: None)
+    if len(meta_cols) > 0:
+        metadata_dict = df[meta_cols].transpose().to_dict()
+    measurement_dict = df[wave_cols].transpose().to_dict('series')
+    for spectrum_name in df.index:
+        c.append(Spectrum(name=spectrum_name,
+                          measurement=measurement_dict[spectrum_name],
+                          measure_type=measure_type,
+                          metadata=metadata_dict[spectrum_name]))
+    return c
+
+def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
+    '''
+    Perform proximal join and return a new collection.
+
+    Params
+    ------
+    base: DataFrame or specdal.Collection object
+    rover: DataFrame or specdal.Collection object
+
+    Returns
+    -------
+    result: proximally joined dataset
+        default: specdal.Collection object
+        if output_df is True: pandas.DataFrame object
+    '''
+    result = None
+    return_collection = False
+    name = 'proximally_joined'
+    if isinstance(base, Collection):
+        return_collection = True
+        base = base.data_with_meta(fields=[on])
+    if isinstance(rover, Collection):
+        return_collection = True
+        name = rover.name
+        rover = rover.data_with_meta(fields=[on])
+    result = op.proximal_join(base, rover, on=on, direction=direction)
+    if return_collection:
+        result = df_to_collection(result, name=name)
+    return result
 
 ################################################################################
 # main Collection class
@@ -64,6 +122,37 @@ class Collection(object):
         assert spectrum.name not in self._spectra
         assert isinstance(spectrum, Spectrum)
         self._spectra[spectrum.name] = spectrum
+    def data_with_meta(self, data=True, fields=None):
+        """
+        Get dataframe with additional columns for metadata fields
+        
+        Params
+        ------
+        data: boolean
+            whether to return the measurement data or not
+        fields: list
+            name of metadata fields to include as columns
+        
+        Returns
+        -------
+        pd.DataFrame: self.data with additional columns
+        """
+        if fields is None:
+            fields = ['file', 'instrument_type', 'integration_time',
+                      'measurement_type', 'gps_time_tgt', 'gps_time_ref',
+                      'wavelength_range']
+        meta_dict = {}
+        for field in fields:
+            meta_dict[field] = [s.metadata[field] if field in s.metadata
+                                else None for s in self.spectra]
+        meta_df = pd.DataFrame(meta_dict, index=[s.name for s in self.spectra])
+        if data:
+            result = pd.merge(meta_df, self.data.transpose(),
+                              left_index=True, right_index=True)
+        else:
+            result = meta_df
+        return result
+
     ##################################################
     # object methods
     def __getitem__(self, key):

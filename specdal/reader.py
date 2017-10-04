@@ -27,31 +27,43 @@ def read_sed(filepath, read_data=True, read_metadata=True, verbose=False):
     """
     data = None
     metadata = None
-    if read_metadata:
-        metadata = OrderedDict()
+    raw_metadata = {}
+    # first, get raw metadata and line number of data
     with open(abspath(expanduser(filepath)), 'r') as f:
         if verbose:
             print('reading {}'.format(filepath))
+        for i, line in enumerate(f):
+            if line[0:5] == 'Data:':
+                break
+            field = line.strip().split(': ')
+            if len(field) > 1:
+                raw_metadata[field[0]] = field[1]
+    if read_data:
+        data = pd.read_table(filepath, skiprows=i+1,
+                             sep='\t')
+        data.columns = [SED_COLUMNS[col] for col in data.columns]
+        data = data.set_index("wavelength")
+        if "pct_reflect" in data:
+            data["pct_reflect"] = data["pct_reflect"]/100
+        if "dec_reflect" in data:
+            data["pct_reflect"] = data["dec_reflect"]
+    if read_metadata:
+        metadata = OrderedDict()
         metadata['file'] = f.name
         metadata['instrument_type'] = 'SED'
-        for i, line in enumerate(f):
-            line = line.splitlines()[0].split(': ')
-            if line[0] == 'Data:' and read_data:
-                # read data
-                data = pd.read_table(filepath, skiprows=i+1,
-                                     sep="\t"
-                )
-                # translate column headers
-                data.columns = [SED_COLUMNS[col] for col in data.columns]
-                data = data.set_index("wavelength")
-                if "pct_reflect" in data:
-                    data["pct_reflect"] = data["pct_reflect"]/100
-                if "dec_reflect" in data:
-                    data["pct_reflect"] = data["dec_reflect"]
-            elif read_metadata:
-                if len(line) > 1:
-                    # read metadata
-                    metadata[line[0]] = line[1]
+        ################################################################################
+        # Average the integration times
+        # TODO: check if this is valid
+        metadata['integration_time'] =  np.mean( 
+            list(map(int, raw_metadata['Integration'].split(','))))
+        ################################################################################
+        metadata['measurement_type'] = raw_metadata['Measurement']
+        metadata['gps_time_tgt'] = None
+        metadata['gps_time_ref'] = None
+        if raw_metadata['GPS Time'] != 'n/a':
+            # TODO: WILL THIS BE A TUPLE?
+            metadata['gps_time_tgt'] = raw_metadata['GPS Time']
+        metadata['wavelength_range'] = tuple(map(int, raw_metadata['Wavelength Range'].split(',')))
     return data, metadata
 
 def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
@@ -64,37 +76,50 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
     """
     data = None
     metadata = None
-    units = None
-    if read_metadata:
-        metadata = OrderedDict()
+    raw_metadata = {}
+    # first, get raw metadata and line number of data
     with open(abspath(expanduser(filepath)), 'r') as f:
         if verbose:
             print('reading {}'.format(filepath))
-        if read_metadata:
-            metadata['file'] = f.name
-            metadata['instrument_type'] = 'SIG'
         for i, line in enumerate(f):
-            line = line.splitlines()[0].split('= ')
-            if len(line) > 1:
-                if line[0] == 'units':
-                    units = line[1]
-                if line[0] == 'data' and read_data:
-                    # read data
-                    if units == "Counts, Counts":
-                        colnames = ["wavelength", "ref_counts",
-                                    "tgt_counts", "pct_reflect"]
-                    elif units == "Radiance, Radiance":
-                        colnames = ["wavelength", "ref_radiance",
-                                    "tgt_radiance", "pct_reflect"]
-                    data = pd.read_table(filepath, skiprows=i+1,
-                                         sep="\s+", index_col=0,
-                                         header=None, names=colnames
-                    )
-                    if "pct_reflect" in data:
-                        data["pct_reflect"] = data["pct_reflect"]/100
-                elif read_metadata:
-                    # read metadata
-                    metadata[line[0]] = line[1]
+            if line[0:5] == 'data=':
+                break
+            field = line.strip().split('= ')
+            if len(field) > 1:
+                raw_metadata[field[0]] = field[1].strip()
+    if read_data:
+        # read data
+        if raw_metadata['units'] == "Counts, Counts":
+            colnames = ["wavelength", "ref_counts",
+                        "tgt_counts", "pct_reflect"]
+        elif raw_metadata['units'] == "Radiance, Radiance":
+            colnames = ["wavelength", "ref_radiance",
+                        "tgt_radiance", "pct_reflect"]
+        data = pd.read_table(filepath, skiprows=i+1,
+                             sep="\s+", index_col=0,
+                             header=None, names=colnames
+        )
+        if "pct_reflect" in data:
+            data["pct_reflect"] = data["pct_reflect"]/100
+    if read_metadata:
+        metadata = OrderedDict()
+        metadata['file'] = f.name
+        metadata['instrument_type'] = 'SIG'
+        ################################################################################
+        # Average the integration times
+        # TODO: check if this is valid
+        metadata['integration_time'] =  np.mean( 
+            list(map(float, raw_metadata['integration'].split(', '))))
+        ################################################################################
+        metadata['measurement_type'] = raw_metadata['units'].split(', ')[0]
+        metadata['gps_time_tgt'] = None
+        metadata['gps_time_ref'] = None
+        if raw_metadata['gpstime'] != ',':
+            metadata['gps_time_ref'], metadata['gps_time_tgt'] = tuple(
+                map(float, raw_metadata['gpstime'].replace(' ', '').split(',')))
+        metadata['wavelength_range'] = None
+        if read_data:
+            metadata['wavelength_range'] = (data.index.min(), data.index.max())
     return data, metadata
 
 def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
@@ -170,10 +195,11 @@ def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
             gps_satellites = gps_struct[11:16]
             gps_filler = gps_struct[16:18]
             # metadata
-            metadata['type'] = spectrum_type
-            metadata['splice'] = (splice1, splice2)
-            metadata['gps_timestamp'] = gps_timestamp
             metadata['integration_time'] = integration_time
+            metadata['measurement_type'] = spectrum_type
+            metadata['gps_time_tgt'] = gps_timestamp
+            metadata['gps_time_ref'] = None
             metadata['wavelength_range'] = (wavestart, wavestop)
-            metadata['resolution'] = wavestep
+            # metadata['splice'] = (splice1, splice2)
+            # metadata['resolution'] = wavestep
     return data, metadata

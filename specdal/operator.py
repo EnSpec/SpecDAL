@@ -5,6 +5,10 @@ import numpy as np
 from .utils.misc import get_monotonic_series
 
 ################################################################################
+# Series operators (single spectrum)
+################################################################################
+
+################################################################################
 # resample: interpolate at given spacing
 def resample(series, spacing=1, method='slinear'):
     """Interpolate the array into given spacing"""
@@ -71,3 +75,54 @@ def jump_correct_additive(series, splices, reference):
 # derivative: calculate derivative of a spectrum
 def derivative(series):
     pass
+
+
+################################################################################
+# DataFrame operations (collection of spectra)
+################################################################################
+def get_column_types(df):
+    '''
+    Returns a tuple (wvl_cols, meta_cols), given a dataframe.
+    '''
+    isdigit = df.columns.map(str).str.replace('.', '').str.isdigit()
+    wvl_cols = df.columns[isdigit].sort_values()
+    meta_cols = df.columns.difference(wvl_cols)
+    return wvl_cols, meta_cols
+
+def proximal_join(base_df, rover_df, on='gps_time_tgt', direction='nearest'):
+    '''
+    Perform proximal join and return a new dataframe
+
+    Params
+    ------
+    
+    Returns
+    -------
+    proximal: pandas.DataFrame object
+        proximally joined dataset
+
+    Notes
+    -----
+    As a side-effect, the rover dataframe is sorted by the key
+    Both base_df and rover_df must have the column specified by on. 
+    This column must be the same type in base and rover.
+    '''
+    rover_wvl_cols, rover_meta_cols = get_column_types(rover_df)
+    base_wvl_cols, base_meta_cols = get_column_types(base_df)
+    # join the (sorted) keys
+    joined = pd.merge_asof(rover_df[on].sort_values().reset_index(),
+                           base_df[on].sort_values().reset_index(),
+                           on=on,
+                           direction=direction,
+                           suffixes=('_rover', '_base'))
+    rover_df = rover_df.loc[joined['index_rover']]
+    base_df = base_df.loc[joined['index_base']]
+    base_df.index = rover_df.index
+    metadata = pd.merge(rover_df[rover_meta_cols], base_df[base_meta_cols],
+                        left_index=True, right_index=True,
+                        suffixes=('_rover', '_base'))
+    proximal = rover_df[rover_wvl_cols]/base_df[base_wvl_cols]
+    proximal = pd.merge(metadata, proximal, left_index=True,
+                        right_index=True) # retrieve metadata
+    return proximal
+
