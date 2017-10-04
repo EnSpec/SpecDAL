@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 sys.path.insert(0, os.path.abspath('..'))
-from specdal.collection import Collection
+from specdal.collection import Collection, proximal_join
 
 parser = argparse.ArgumentParser(description='SpecDAL Pipeline')
 # io options
@@ -71,6 +71,9 @@ parser.add_argument('--group_append', dest='aggr_append', nargs='+', default=[],
 parser.add_argument('-d', '--debug', action='store_true')
 # misc
 parser.add_argument('-q', '--quiet', default=False, action='store_true')
+parser.add_argument('--proximal', default=None, metavar='PATH', action='store',
+                    help='path containing base measurement spectral files')
+
 args = parser.parse_args()
 if args.debug:
     print('args = {}'.format(args))
@@ -99,20 +102,37 @@ for d in (outdir, datadir, figdir):
     os.makedirs(d)
 
 c = Collection(name=args.name)
-print_if_verbose('Reading from ' + indir)
+print_if_verbose('Reading target measurements from ' + indir)
 c.read(directory=indir)
+
+if args.proximal:
+    print_if_verbose('Reading base measurements from ' + args.proximal)
+    c_base = Collection(name=args.name + '_base')
+    c_base.read(directory=args.proximal)
 
 if args.resample:
     print_if_verbose('Resampling...')
     c.resample(spacing=args.resample_spacing, method=args.resample)
+    if args.proximal:
+        c_base.resample(spacing=args.resample_spacing, method=args.resample)
 if args.stitch:
     print_if_verbose('Stitching...')
     c.stitch(method=args.stitch)
+    if args.proximal:
+        c_base.stitch(method=args.stitch)
 if args.jump_correct:
     print_if_verbose('Jump correcting...')
     c.jump_correct(splices=args.jump_correct_splices,
                    reference=args.jump_correct_reference,
                    method=args.jump_correct)
+    if args.proximal:
+        c_base.jump_correct(splices=args.jump_correct_splices,
+                            reference=args.jump_correct_reference,
+                            method=args.jump_correct)
+
+if args.proximal:
+    print_if_verbose('Joining proximal data...')
+    c = proximal_join(c_base, c, on='gps_time_tgt', direction='nearest')
 
 # group by
 if args.group_by:

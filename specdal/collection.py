@@ -38,9 +38,7 @@ def df_to_collection(df, name, measure_type='pct_reflect'):
     c: specdal.Collection object
     '''
     c = Collection(name=name, measure_type=measure_type)
-    wvl_idx = df.columns.map(str).str.isdigit()
-    wave_cols = df.columns[wvl_idx]
-    meta_cols = df.columns[~wvl_idx]
+    wave_cols, meta_cols = op.get_column_types(df)
     metadata_dict = defaultdict(lambda: None)
     if len(meta_cols) > 0:
         metadata_dict = df[meta_cols].transpose().to_dict()
@@ -58,7 +56,9 @@ def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
 
     Params
     ------
-    
+    base: DataFrame or specdal.Collection object
+    rover: DataFrame or specdal.Collection object
+
     Returns
     -------
     result: proximally joined dataset
@@ -70,13 +70,12 @@ def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
     name = 'proximally_joined'
     if isinstance(base, Collection):
         return_collection = True
-        base = base.data_with_meta(fields=[on]).reset_index()
+        base = base.data_with_meta(fields=[on])
     if isinstance(rover, Collection):
         return_collection = True
         name = rover.name
-        rover = rover.data_with_meta(fields=[on]).reset_index()
+        rover = rover.data_with_meta(fields=[on])
     result = op.proximal_join(base, rover, on=on, direction=direction)
-    print(result)
     if return_collection:
         result = df_to_collection(result, name=name)
     return result

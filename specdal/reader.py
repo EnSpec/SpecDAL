@@ -120,8 +120,6 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
         metadata['wavelength_range'] = None
         if read_data:
             metadata['wavelength_range'] = (data.index.min(), data.index.max())
-    for key, val in raw_metadata.items():
-        print('{:20}{}'.format(key, val))
     return data, metadata
 
 def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
