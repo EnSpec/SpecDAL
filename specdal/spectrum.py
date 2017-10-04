@@ -9,6 +9,30 @@ from .reader import read
 from .utils.misc import get_pct_reflect
 
 class Spectrum(object):
+    """Class that represents a single spectrum
+    
+    Parameters
+    ----------
+    
+    name: string
+        Name of the spectrum. 
+    
+    filepath: string (optional)
+        Path to the file to read from.
+    
+    measurement: pandas.Series
+        Spectral measurement
+    
+    metadata: OrderedDict
+        Metadata associated with spectrum
+    
+    Notes
+    -----
+    
+    Spectrum object stores a single spectral measurement using
+    pandas.Series with index named: "wavelength".
+    
+    """
     def __init__(self, name, filepath=None, measurement=None,
                  measure_type='pct_reflect', metadata=None,
                  resampled=False, stitched=False, jump_corrected=False,
@@ -25,6 +49,9 @@ class Spectrum(object):
     ##################################################
     # reader
     def read(self, filepath, measure_type, verbose=False):
+        '''
+        Read measurement from a file.
+        '''
         data, meta = read(filepath, verbose=verbose)
         self.metadata = meta
         if measure_type == 'pct_reflect' and 'pct_reflect' not in data:
@@ -35,19 +62,27 @@ class Spectrum(object):
     ##################################################
     # wrappers around spectral operations
     def resample(self, spacing=1, method='slinear'):
+        '''
+        '''
         self.measurement = op.resample(self.measurement, spacing, method)
         self.resampled = True
     def stitch(self, method='mean'):
+        '''
+        '''
         self.measurement = op.stitch(self.measurement, method)
         self.stitched = True
     def jump_correct(self, splices, reference, method="additive"):
+        '''
+        '''
         self.measurement = op.jump_correct(self.measurement, splices, reference, method)
         self.jump_corrected = True
     ##################################################
     # wrapper around plot function
     def plot(self, *args, **kwargs):
+        ''''''
         return self.measurement.plot(*args, **kwargs)
     def to_csv(self, *args, **kwargs):
+        ''''''
         return pd.DataFrame(self.measurement).transpose().to_csv(
             *args, **kwargs)
     ##################################################
