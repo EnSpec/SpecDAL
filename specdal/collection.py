@@ -28,14 +28,19 @@ def df_to_collection(df, name, measure_type='pct_reflect'):
     '''
     Create a collection from a pandas.DataFrame
     
-    Params
-    ------
-    df: pd.DataFrame
+    Parameters
+    ----------
+
+    df: pandas.DataFrame
         Must have spectrum.name as index and metadata or wavelengths as columns
+    
+    name: string
+        Name to assign to collection
     
     Returns
     -------
     c: specdal.Collection object
+    
     '''
     c = Collection(name=name, measure_type=measure_type)
     wave_cols, meta_cols = op.get_column_types(df)
@@ -54,9 +59,11 @@ def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
     '''
     Perform proximal join and return a new collection.
 
-    Params
-    ------
+    Parameters
+    ----------
+    
     base: DataFrame or specdal.Collection object
+    
     rover: DataFrame or specdal.Collection object
 
     Returns
@@ -83,6 +90,9 @@ def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
 ################################################################################
 # main Collection class
 class Collection(object):
+    """
+    Represents a dataset consisting of a collection of spectra
+    """
     def __init__(self, name, directory=None, spectra=None,
                  measure_type='pct_reflect', metadata=None):
         self.name = name
@@ -107,6 +117,9 @@ class Collection(object):
                 self._spectra[spectrum.name] = spectrum
     @property
     def data(self):
+        '''
+        Get measurements as a Pandas.DataFrame
+        '''
         try:
             return pd.concat(objs=[s.measurement for s in self.spectra],
                              axis=1, keys=[s.name for s in self.spectra])
@@ -122,20 +135,25 @@ class Collection(object):
         assert spectrum.name not in self._spectra
         assert isinstance(spectrum, Spectrum)
         self._spectra[spectrum.name] = spectrum
+        
     def data_with_meta(self, data=True, fields=None):
         """
         Get dataframe with additional columns for metadata fields
         
-        Params
-        ------
+        Parameters
+        ----------
+        
         data: boolean
             whether to return the measurement data or not
+        
         fields: list
-            name of metadata fields to include as columns
+            names of metadata fields to include as columns.
+            If None, all the metadata will be included.
         
         Returns
         -------
         pd.DataFrame: self.data with additional columns
+        
         """
         if fields is None:
             fields = ['file', 'instrument_type', 'integration_time',
@@ -191,23 +209,32 @@ class Collection(object):
     ##################################################
     # wrapper around spectral operations
     def resample(self, spacing=1, method='slinear'):
+        '''
+	'''
         for spectrum in self.spectra:
             spectrum.resample(spacing, method)
     def stitch(self, method='mean'):
+        '''
+	'''
         for spectrum in self.spectra:
             spectrum.stitch(method)
     def jump_correct(self, splices, reference, method='additive'):
+        '''
+	'''
         for spectrum in self.spectra:
             spectrum.jump_correct(splices, reference, method)
     ##################################################
     # group operations
     def groupby(self, separator, indices, filler=None):
         """
+        Group the spectra using a separator pattern
+        
         Returns
         -------
         OrderedDict consisting of specdal.Collection objects for each group
             key: group name
             value: collection object
+        
         """
         args = [separator, indices]
         key_fun = separator_keyfun
@@ -225,13 +252,19 @@ class Collection(object):
             result[coll.name] = coll
         return result
     def plot(self, *args, **kwargs):
+        '''
+        '''
         self.data.plot(*args, **kwargs)
         pass
     def to_csv(self, *args, **kwargs):
+        '''
+        '''
         self.data.transpose().to_csv(*args, **kwargs)
     ##################################################
     # aggregate
     def mean(self, append=False):
+        '''
+        '''
         spectrum = Spectrum(name=self.name + '_mean',
                             measurement=self.data.mean(axis=1),
                             measure_type=self.measure_type)
@@ -239,6 +272,8 @@ class Collection(object):
             self.append(spectrum)
         return spectrum
     def median(self, append=False):
+        '''
+	'''
         spectrum = Spectrum(name=self.name + '_median',
                             measurement=self.data.median(axis=1),
                             measure_type=self.measure_type)
@@ -246,6 +281,8 @@ class Collection(object):
             self.append(spectrum)
         return spectrum
     def min(self, append=False):
+        '''
+	'''
         spectrum = Spectrum(name=self.name + '_min',
                             measurement=self.data.min(axis=1),
                             measure_type=self.measure_type)
@@ -253,6 +290,8 @@ class Collection(object):
             self.append(spectrum)
         return spectrum
     def max(self, append=False):
+        '''
+	'''
         spectrum = Spectrum(name=self.name + '_max',
                             measurement=self.data.max(axis=1),
                             measure_type=self.measure_type)
@@ -260,6 +299,8 @@ class Collection(object):
             self.append(spectrum)
         return spectrum
     def std(self, append=False):
+        '''
+	'''
         spectrum = Spectrum(name=self.name + '_std',
                             measurement=self.data.std(axis=1),
                             measure_type=self.measure_type)
