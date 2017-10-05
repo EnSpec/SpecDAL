@@ -11,7 +11,14 @@ from .utils.misc import get_monotonic_series
 ################################################################################
 # resample: interpolate at given spacing
 def resample(series, spacing=1, method='slinear'):
-    """Interpolate the array into given spacing"""
+    """
+    Interpolate the array into given spacing
+    
+    Parameters
+    ----------
+    series: pandas.Series object
+    
+    """
     seqs = []
     for seq in get_monotonic_series(series):
         int_index = np.round(seq.index)
@@ -30,13 +37,33 @@ def resample(series, spacing=1, method='slinear'):
 ################################################################################
 # stitch: resolve overlaps in wavelengths
 def stitch(series, method='mean'):
+    """
+    Stitch the regions with overlapping wavelength
+    
+    Parameters
+    ----------
+    series: pandas.Series object
+    
+    """
+    
     if method == 'mean':
         return series.groupby(level=0, axis=0).mean()
 
 ################################################################################
 # jump_correct: resolve jumps in non-overlapping wavelengths
 def jump_correct(series, splices, reference, method="additive"):
-    """Stitch jumps for non-overlapping wavelengths"""
+    """
+    Correct for jumps in non-overlapping wavelengths
+    
+    Parameters
+    ----------
+    splices: list
+        list of wavelength values where jumps occur
+    
+    reference: int
+        position of the reference band (0-based)
+    
+    """
     if method == "additive":
         return jump_correct_additive(series, splices, reference)
 
@@ -74,6 +101,9 @@ def jump_correct_additive(series, splices, reference):
 ################################################################################
 # derivative: calculate derivative of a spectrum
 def derivative(series):
+    '''
+    Calculate the spectral derivative. Not Implemented Yet.
+    '''
     pass
 
 
@@ -83,6 +113,11 @@ def derivative(series):
 def get_column_types(df):
     '''
     Returns a tuple (wvl_cols, meta_cols), given a dataframe.
+    
+    Notes
+    -----
+    Wavelength column is defined as columns with a numerical name (i.e. decimal).
+    Everything else is considered metadata column.
     '''
     isdigit = df.columns.map(str).str.replace('.', '').str.isdigit()
     wvl_cols = df.columns[isdigit].sort_values()
@@ -91,18 +126,24 @@ def get_column_types(df):
 
 def proximal_join(base_df, rover_df, on='gps_time_tgt', direction='nearest'):
     '''
-    Perform proximal join and return a new dataframe
-
+    Perform proximal join and return a new dataframe.
+    
     Params
     ------
+    base_df: pandas.DataFrame
+        DataFrame of reference measurements
+    
+    rover_df: pandas.DataFrame
+        DataFrame of target measurements 
     
     Returns
     -------
     proximal: pandas.DataFrame object
-        proximally joined dataset
+        proximally processed dataset ( rover_df / base_df )
 
     Notes
     -----
+    
     As a side-effect, the rover dataframe is sorted by the key
     Both base_df and rover_df must have the column specified by on. 
     This column must be the same type in base and rover.
