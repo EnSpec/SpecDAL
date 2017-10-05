@@ -7,6 +7,7 @@ import specdal.operator as op
 from collections import OrderedDict
 from .reader import read
 from .utils.misc import get_pct_reflect
+import os
 
 class Spectrum(object):
     """Class that represents a single spectrum
@@ -33,10 +34,13 @@ class Spectrum(object):
     pandas.Series with index named: "wavelength".
     
     """
-    def __init__(self, name, filepath=None, measurement=None,
+    def __init__(self, name=None, filepath=None, measurement=None,
                  measure_type='pct_reflect', metadata=None,
                  resampled=False, stitched=False, jump_corrected=False,
                  verbose=False):
+        if name is None:
+            assert filepath is not None
+            name = os.path.splitext(os.path.basename(filepath))[0]
         self.name = name
         self.measurement = measurement
         self.measure_type = measure_type
@@ -46,6 +50,23 @@ class Spectrum(object):
         self.jump_corrected = jump_corrected
         if filepath:
             self.read(filepath, measure_type, verbose=verbose)
+    def __str__(self):
+        string = "\nname:\t\t{!s},\n".format(self.name)
+        string += "measure_type:\t{!s}\n".format(self.measure_type)
+        string += "measurements:\twave  |measurement\n"
+        string += "\t\t------|-----------\n"
+        string += "\t\t {0:.1f}|{1:.3f}\n".format(
+            self.measurement.head(1).index.values[0],
+            self.measurement.head(1).values[0])
+        string += "\t\t   ...|...\n"
+        string += "\t\t{0:.1f}|{1:.3f}\n".format(self.measurement.tail(1).index.values[0],
+                                        self.measurement.tail(1).values[0])
+        string += "metadata:"
+        for i, (key, item) in enumerate(self.metadata.items()):
+            if i > 0:
+                string += "\t"
+            string += "\t{}:{}\n".format(key, item)
+        return string
     ##################################################
     # reader
     def read(self, filepath, measure_type, verbose=False):
