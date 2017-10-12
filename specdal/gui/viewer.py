@@ -116,14 +116,15 @@ class Viewer(tk.Frame):
         self.update()
         self.update_list()
     def toggle_mask(self):
-        idx = self.listbox.curselection()[0]
-        spectrum = self.collection.spectra[idx]
-        if spectrum.name in self.collection.masks:
-            self.collection.unmask(spectrum.name)
-            self.listbox.itemconfigure(idx, foreground='black')
-        else:
-            self.collection.mask(spectrum.name)
-            self.listbox.itemconfigure(idx, foreground='red')
+        idx = self.listbox.curselection()
+        for i in idx:
+            spectrum = self.collection.spectra[i].name
+            if spectrum in self.collection.masks:
+                self.collection.unmask(spectrum)
+                self.listbox.itemconfigure(i, foreground='black')
+            else:
+                self.collection.mask(spectrum)
+                self.listbox.itemconfigure(i, foreground='red')
         # update figure
         self.update()
     def save_mask(self):
