@@ -21,17 +21,28 @@ class Viewer(tk.Frame):
         tk.Frame.__init__(self, parent)
         # toolbar
         self.toolbar = tk.Frame(self)
-        tk.Button(self.toolbar, text='Mode', command=lambda: self.toggle_mode()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Show/Hide Masked', command=lambda: self.toggle_show_masked()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Mask/Unmask', command=lambda: self.toggle_mask()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Unmask all', command=lambda: self.unmask_all()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Save Mask', command=lambda: self.save_mask()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Save Mask As', command=lambda: self.save_mask_as()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Stitch', command=lambda: self.stitch()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Jump_Correct', command=lambda: self.jump_correct()).pack(side=tk.LEFT)       
-        tk.Button(self.toolbar, text='Show mean', command=lambda: self.toggle_mean()).pack(side=tk.LEFT)       
-        tk.Button(self.toolbar, text='Show median', command=lambda: self.toggle_median()).pack(side=tk.LEFT)       
-        tk.Button(self.toolbar, text='Show std', command=lambda: self.toggle_std()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='Mode', command=lambda:
+                  self.toggle_mode()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Show/Hide Masked',
+                  command=lambda: self.toggle_show_masked()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Mask/Unmask', command=lambda:
+                  self.toggle_mask()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Unmask all', command=lambda:
+                  self.unmask_all()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Save Mask', command=lambda:
+                  self.save_mask()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Save Mask As', command=lambda:
+                  self.save_mask_as()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Stitch', command=lambda:
+                  self.stitch()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Jump_Correct', command=lambda:
+                  self.jump_correct()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='Show mean', command=lambda:
+                  self.toggle_mean()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='Show median', command=lambda:
+                  self.toggle_median()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='Show std', command=lambda:
+                  self.toggle_std()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
         # canvas
         self.fig = plt.Figure(figsize=(6,6))
@@ -42,7 +53,7 @@ class Viewer(tk.Frame):
         # spectra list
         self.scrollbar = ttk.Scrollbar(self)
         self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
-                                  width=30)
+                                  selectmode=tk.EXTENDED, width=30)
         self.scrollbar.config(command=self.listbox.yview)
         self.listbox.pack(side=tk.LEFT, fill=tk.Y)
         self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
@@ -144,11 +155,21 @@ class Viewer(tk.Frame):
             ylim = self.ax.get_ylim()
         # plot
         self.ax.clear()
+        # show statistics
         if self.spectrum_mode:
-            spectrum = self.collection.spectra[self.head]
-            c = str(np.where(spectrum.name in self.collection.masks, 'r', 'k'))
-            spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
-            self.ax.legend()
+            idx = self.listbox.curselection()
+            if len(idx) == 0:
+                idx = [self.head]
+            spectra = [self.collection.spectra[i] for i in idx]
+            masks = [s.name in self.collection.masks for s in spectra]
+            mask_style = ' '
+            if self.show_masked:
+                mask_style = 'r'
+            Collection(name='selection', spectra=spectra).plot(ax=self.ax,
+                                                               style=list(np.where(masks, mask_style, 'k')))
+            self.ax.set_title('selection')            
+            # c = str(np.where(spectrum.name in self.collection.masks, 'r', 'k'))
+            # spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
         else:
             # red curves for masked spectra
             mask_style = ' '
@@ -157,20 +178,23 @@ class Viewer(tk.Frame):
             masks = [s.name in self.collection.masks for s in self.collection.spectra]
             self.collection.plot(ax=self.ax,
                                  style=list(np.where(masks, mask_style, 'k')))
-            self.ax.legend().remove()
-            # show statistics
-            if self.mean:
-                self.collection.mean().plot(ax=self.ax, c='b', label='mean')
-            if self.median:
-                self.collection.median().plot(ax=self.ax, c='b', label='median')
-            if self.std:
-                self.collection.std().plot(ax=self.ax, c='b', label='std')
-
+            self.ax.set_title(self.collection.name)
+            
+        if self.mean:
+            self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean')
+        if self.median:
+            self.collection.median().plot(ax=self.ax, c='g', label=self.collection.name + '_median')
+        if self.std:
+            self.collection.std().plot(ax=self.ax, c='c', label=self.collection.name + '_std')
         # reapply limits
         if new_lim == False:
             self.ax.set_xlim(xlim)
             self.ax.set_ylim(ylim)
-        self.ax.set_title(self.collection.name)
+        # legend
+        if self.spectrum_mode:
+            self.ax.legend()
+        else:
+            self.ax.legend().remove()
         self.ax.set_ylabel(self.collection.measure_type)
         self.canvas.draw()
     def next_spectrum(self):
