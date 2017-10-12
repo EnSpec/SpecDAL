@@ -94,11 +94,12 @@ class Collection(object):
     Represents a dataset consisting of a collection of spectra
     """
     def __init__(self, name, directory=None, spectra=None,
-                 measure_type='pct_reflect', metadata=None):
+                 measure_type='pct_reflect', metadata=None, masks=None):
         self.name = name
         self.spectra = spectra
         self.measure_type = measure_type
         self.metadata = metadata
+        self.masks = masks
         if directory:
             self.read(directory, measure_type)
     @property
@@ -115,6 +116,27 @@ class Collection(object):
             for spectrum in value:
                 assert spectrum.name not in self._spectra
                 self._spectra[spectrum.name] = spectrum
+    @property
+    def masks(self):
+        """
+        A dict of masks for each spectrum in the collection
+        """
+        return self._masks
+    @masks.setter
+    def masks(self, value):
+        '''
+        TODO: test this
+        '''
+        self._masks = defaultdict(lambda: False)
+        if value is not None:
+            for v in value:
+                if v in self._spectra:
+                    self._masks[v] = True
+    def mask(self, spectrum_name):
+        self.masks[spectrum_name] = True
+    def unmask(self, spectrum_name):
+        del self.masks[spectrum_name]
+        
     @property
     def data(self):
         '''
@@ -177,6 +199,7 @@ class Collection(object):
         return self._spectra[key]
     def __delitem__(self, key):
         self._spectra.__delitem__(key)
+        self._masks.__delitem__(key)
     def __missing__(self, key):
         pass
     def __len__(self):
@@ -191,6 +214,7 @@ class Collection(object):
         """
         read all files in a path matching extension
         """
+        directory = abspath(expanduser(directory))
         for dirpath, dirnames, filenames in os.walk(directory):
             if not recursive:
                 # only read given path
