@@ -24,6 +24,10 @@ class Viewer(tk.Frame):
         tk.Button(self.toolbar, text='Mode', command=lambda: self.toggle_mode()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Show/Hide Masked', command=lambda: self.toggle_show_masked()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Mask/Unmask', command=lambda: self.toggle_mask()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Unmask all', command=lambda: self.unmask_all()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Save Mask', command=lambda: self.save_mask_as()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Stitch', command=lambda: self.stitch()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Jump_Correct', command=lambda: self.jump_correct()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
         # canvas
         self.fig = plt.Figure(figsize=(6,6))
@@ -47,6 +51,7 @@ class Viewer(tk.Frame):
         self.head = 0
         self.update(new_lim=True)
         self.update_list()
+        self.mask_filepath = os.path.abspath('./masked_spectra.txt')
         # pack
         self.pack()
         
@@ -87,6 +92,11 @@ class Viewer(tk.Frame):
         else:
             self.show_masked = True
         self.update()
+    def unmask_all(self):
+        for spectrum in list(self.collection.masks):
+            self.collection.unmask(spectrum)
+        self.update()
+        self.update_list()
     def toggle_mask(self):
         idx = self.listbox.curselection()[0]
         spectrum = self.collection.spectra[idx]
@@ -98,12 +108,25 @@ class Viewer(tk.Frame):
             self.listbox.itemconfigure(idx, foreground='red')
         # update figure
         self.update()
-
+    def save_mask(self):
+        ''' save mask to self.mask_filepath'''
+        with open(self.mask_filepath, 'w') as f:
+            for spectrum in self.collection.masks:
+                print(spectrum, file=f)
+    def save_mask_as(self):
+        ''' modify self.mask_filepath and call save_mask()'''
+        mask_filepath = filedialog.asksaveasfilename()
+        if os.path.splitext(mask_filepath)[1] == '':
+            mask_filepath = mask_filepath + '.txt'
+        self.mask_filepath = mask_filepath
+        self.save_mask()
     def update_list(self):
+        self.listbox.delete(0, tk.END)
         for i, spectrum in enumerate(self.collection.spectra):
             self.listbox.insert(tk.END, spectrum.name)
             if spectrum.name in self.collection.masks:
                 self.listbox.itemconfigure(i, foreground='red')
+                
     def update(self, new_lim=False):
         """ Update the plot """
         if self.collection is None:
@@ -139,6 +162,22 @@ class Viewer(tk.Frame):
         if not self.spectrum_mode:
             return
         self.head = (self.head + 1) % len(self.collection)
+        self.update()
+    def stitch(self):
+        ''' 
+        Known Bugs
+        ----------
+        Can't stitch one spectrum and plot the collection
+        '''
+        self.collection.stitch()
+        self.update()
+    def jump_correct(self):
+        ''' 
+        Known Bugs
+        ----------
+        Only performs jump correction on 1000 and 1800 wvls and 1 reference
+        '''
+        self.collection.jump_correct([1000, 1800], 1)
         self.update()
 
 def main():
