@@ -25,9 +25,13 @@ class Viewer(tk.Frame):
         tk.Button(self.toolbar, text='Show/Hide Masked', command=lambda: self.toggle_show_masked()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Mask/Unmask', command=lambda: self.toggle_mask()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Unmask all', command=lambda: self.unmask_all()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Save Mask', command=lambda: self.save_mask_as()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Save Mask', command=lambda: self.save_mask()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Save Mask As', command=lambda: self.save_mask_as()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Stitch', command=lambda: self.stitch()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Jump_Correct', command=lambda: self.jump_correct()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='Show mean', command=lambda: self.toggle_mean()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='Show median', command=lambda: self.toggle_median()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='Show std', command=lambda: self.toggle_std()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
         # canvas
         self.fig = plt.Figure(figsize=(6,6))
@@ -37,16 +41,19 @@ class Viewer(tk.Frame):
         self.canvas.get_tk_widget().pack(side=tk.LEFT)
         # spectra list
         self.scrollbar = ttk.Scrollbar(self)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
                                   width=30)
         self.scrollbar.config(command=self.listbox.yview)
-        # self.listbox.bind('<Double-Button-1>', lambda x: self.set_head(self.listbox.curselection()[0]))
         self.listbox.pack(side=tk.LEFT, fill=tk.Y)
+        self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.listbox.bind('<<ListboxSelect>>', lambda x: self.set_head(self.listbox.curselection()[0]))
-        # data
+        # toggle options
+        self.mean = False
+        self.median = False
+        self.std = False
         self.spectrum_mode = False
         self.show_masked = True
+        # data
         self.collection = collection
         self.head = 0
         self.update(new_lim=True)
@@ -151,6 +158,14 @@ class Viewer(tk.Frame):
             self.collection.plot(ax=self.ax,
                                  style=list(np.where(masks, mask_style, 'k')))
             self.ax.legend().remove()
+            # show statistics
+            if self.mean:
+                self.collection.mean().plot(ax=self.ax, c='b', label='mean')
+            if self.median:
+                self.collection.median().plot(ax=self.ax, c='b', label='median')
+            if self.std:
+                self.collection.std().plot(ax=self.ax, c='b', label='std')
+
         # reapply limits
         if new_lim == False:
             self.ax.set_xlim(xlim)
@@ -179,9 +194,27 @@ class Viewer(tk.Frame):
         '''
         self.collection.jump_correct([1000, 1800], 1)
         self.update()
+    def toggle_mean(self):
+        if self.mean:
+            self.mean = False
+        else:
+            self.mean = True
+        self.update()
+    def toggle_median(self):
+        if self.median:
+            self.median = False
+        else:
+            self.median = True
+        self.update()
+    def toggle_std(self):
+        if self.std:
+            self.std = False
+        else:
+            self.std = True
+        self.update()
 
 def main():
-    path = '~/data/specdal/aidan_data2/SVC'
+    path = '~/data/specdal/aidan_data2/ASD'
     c = Collection("Test Collection", directory=path)
     for i in range(30):
         c.mask(c.spectra[i].name)
