@@ -16,13 +16,14 @@ from specdal.spectrum import Spectrum
 from specdal.collection import Collection
 matplotlib.use('TkAgg')
 
-
 class Viewer(tk.Frame):
     def __init__(self, parent, collection):
         tk.Frame.__init__(self, parent)
         # toolbar
         self.toolbar = tk.Frame(self)
         tk.Button(self.toolbar, text='Mode', command=lambda: self.toggle_mode()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Show/Hide Masked', command=lambda: self.toggle_show_masked()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Mask/Unmask', command=lambda: self.toggle_mask()).pack(side=tk.LEFT)
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
         # canvas
         self.fig = plt.Figure(figsize=(6,6))
@@ -36,10 +37,12 @@ class Viewer(tk.Frame):
         self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
                                   width=30)
         self.scrollbar.config(command=self.listbox.yview)
-        self.listbox.bind('<Double-Button-1>', lambda x: self.set_head(self.listbox.curselection()[0]))
+        # self.listbox.bind('<Double-Button-1>', lambda x: self.set_head(self.listbox.curselection()[0]))
         self.listbox.pack(side=tk.LEFT, fill=tk.Y)
+        self.listbox.bind('<<ListboxSelect>>', lambda x: self.set_head(self.listbox.curselection()[0]))
         # data
         self.spectrum_mode = False
+        self.show_masked = True
         self.collection = collection
         self.head = 0
         self.update(new_lim=True)
@@ -58,7 +61,8 @@ class Viewer(tk.Frame):
             self._head = value % len(self.collection)
     def set_head(self, value):
         self.head = value
-        self.update()
+        if self.spectrum_mode:
+            self.update()
     @property
     def collection(self):
         return self._collection
@@ -77,12 +81,30 @@ class Viewer(tk.Frame):
         else:
             self.spectrum_mode = True
         self.update()
+    def toggle_show_masked(self):
+        if self.show_masked:
+            self.show_masked = False
+        else:
+            self.show_masked = True
+        self.update()
+    def toggle_mask(self):
+        idx = self.listbox.curselection()[0]
+        spectrum = self.collection.spectra[idx]
+        if spectrum.name in self.collection.masks:
+            self.collection.unmask(spectrum.name)
+            self.listbox.itemconfigure(idx, foreground='black')
+        else:
+            self.collection.mask(spectrum.name)
+            self.listbox.itemconfigure(idx, foreground='red')
+        # update figure
+        self.update()
+
     def update_list(self):
         for i, spectrum in enumerate(self.collection.spectra):
             self.listbox.insert(tk.END, spectrum.name)
             if spectrum.name in self.collection.masks:
                 self.listbox.itemconfigure(i, foreground='red')
-    def update(self, new_lim=False, plot_mask=True):
+    def update(self, new_lim=False):
         """ Update the plot """
         if self.collection is None:
             return
@@ -94,12 +116,13 @@ class Viewer(tk.Frame):
         self.ax.clear()
         if self.spectrum_mode:
             spectrum = self.collection.spectra[self.head]
-            spectrum.plot(ax=self.ax, label=spectrum.name)
+            c = str(np.where(spectrum.name in self.collection.masks, 'r', 'k'))
+            spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
             self.ax.legend()
         else:
             # red curves for masked spectra
             mask_style = ' '
-            if plot_mask:
+            if self.show_masked:
                 mask_style = 'r'
             masks = [s.name in self.collection.masks for s in self.collection.spectra]
             self.collection.plot(ax=self.ax,
@@ -125,7 +148,7 @@ def main():
         c.mask(c.spectra[i].name)
     root = tk.Tk()
     v = Viewer(root, c)
-    v.update(plot_mask=True)
+    v.update()
     root.mainloop()
 
 
