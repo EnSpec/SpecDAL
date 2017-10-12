@@ -19,18 +19,26 @@ matplotlib.use('TkAgg')
 
 class Viewer(tk.Frame):
     def __init__(self, parent, collection):
-        # gui parts
         tk.Frame.__init__(self, parent)
+        # canvas
         self.fig = plt.Figure(figsize=(6,6))
         self.ax = self.fig.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
         self.canvas.get_tk_widget().pack(side=tk.LEFT)
-        # data parts
+        # spectra list
+        self.scrollbar = ttk.Scrollbar(self)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
+                                  width=30)
+        self.scrollbar.config(command=self.listbox.yview)
+        self.listbox.pack(side=tk.LEFT, fill=tk.Y)
+        # data
         self.spectrum_mode = False
         self.collection = collection
         self.head = 0
         self.update(new_lim=True)
+        self.update_list()
         # pack
         self.pack()
         
@@ -61,6 +69,11 @@ class Viewer(tk.Frame):
     def to_collection_mode(self):
         self.spectrum_mode = False
         self.update()
+    def update_list(self):
+        for i, spectrum in enumerate(self.collection.spectra):
+            self.listbox.insert(tk.END, spectrum.name)
+            if spectrum.name in self.collection.masks:
+                self.listbox.itemconfigure(i, foreground='red')
     def update(self, new_lim=False, plot_mask=False):
         """ Update the plot """
         if self.collection is None:
@@ -98,9 +111,9 @@ class Viewer(tk.Frame):
         self.update()
 
 def main():
-    path = '~/data/specdal/aidan_data2/ASD/'
+    path = '~/data/specdal/aidan_data2/SVC'
     c = Collection("Test Collection", directory=path)
-    for i in range(80):
+    for i in range(30):
         c.mask(c.spectra[i].name)
     root = tk.Tk()
     v = Viewer(root, c)
