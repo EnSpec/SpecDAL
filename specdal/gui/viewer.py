@@ -20,6 +20,10 @@ matplotlib.use('TkAgg')
 class Viewer(tk.Frame):
     def __init__(self, parent, collection):
         tk.Frame.__init__(self, parent)
+        # toolbar
+        self.toolbar = tk.Frame(self)
+        tk.Button(self.toolbar, text='Mode', command=lambda: self.toggle_mode()).pack(side=tk.LEFT)
+        self.toolbar.pack(side=tk.TOP, fill=tk.X)
         # canvas
         self.fig = plt.Figure(figsize=(6,6))
         self.ax = self.fig.add_subplot(111)
@@ -32,6 +36,7 @@ class Viewer(tk.Frame):
         self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
                                   width=30)
         self.scrollbar.config(command=self.listbox.yview)
+        self.listbox.bind('<Double-Button-1>', lambda x: self.set_head(self.listbox.curselection()[0]))
         self.listbox.pack(side=tk.LEFT, fill=tk.Y)
         # data
         self.spectrum_mode = False
@@ -51,6 +56,9 @@ class Viewer(tk.Frame):
             self._head = 0
         else:
             self._head = value % len(self.collection)
+    def set_head(self, value):
+        self.head = value
+        self.update()
     @property
     def collection(self):
         return self._collection
@@ -63,18 +71,18 @@ class Viewer(tk.Frame):
             self._collection = value
         else:
             self._collection = None
-    def to_spectrum_mode(self):
-        self.spectrum_mode = True
-        self.update()
-    def to_collection_mode(self):
-        self.spectrum_mode = False
+    def toggle_mode(self):
+        if self.spectrum_mode:
+            self.spectrum_mode = False
+        else:
+            self.spectrum_mode = True
         self.update()
     def update_list(self):
         for i, spectrum in enumerate(self.collection.spectra):
             self.listbox.insert(tk.END, spectrum.name)
             if spectrum.name in self.collection.masks:
                 self.listbox.itemconfigure(i, foreground='red')
-    def update(self, new_lim=False, plot_mask=False):
+    def update(self, new_lim=False, plot_mask=True):
         """ Update the plot """
         if self.collection is None:
             return
