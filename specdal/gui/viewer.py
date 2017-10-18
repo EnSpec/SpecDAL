@@ -37,11 +37,11 @@ class Viewer(tk.Frame):
                   self.stitch()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Jump_Correct', command=lambda:
                   self.jump_correct()).pack(side=tk.LEFT)       
-        tk.Button(self.toolbar, text='Show mean', command=lambda:
+        tk.Button(self.toolbar, text='mean', command=lambda:
                   self.toggle_mean()).pack(side=tk.LEFT)       
-        tk.Button(self.toolbar, text='Show median', command=lambda:
+        tk.Button(self.toolbar, text='median', command=lambda:
                   self.toggle_median()).pack(side=tk.LEFT)       
-        tk.Button(self.toolbar, text='Show std', command=lambda:
+        tk.Button(self.toolbar, text='std', command=lambda:
                   self.toggle_std()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
         # canvas

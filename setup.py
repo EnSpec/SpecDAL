@@ -9,6 +9,7 @@ setup(name='specdal',
           'bin/specdal_info',
       ],
       entry_points={
+          'gui_scripts': ['specdal_gui = specdal.gui.viewer:main'],
       },
       url='https://github.com/EnSpec/SpecDAL/',
       author='Young Lee',
