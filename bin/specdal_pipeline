@@ -134,6 +134,7 @@ if args.proximal:
     print_if_verbose('Joining proximal data...')
     c = proximal_join(c_base, c, on='gps_time_tgt', direction='nearest')
 
+groups = None
 # group by
 if args.group_by:
     print_if_verbose('Grouping...')
@@ -155,27 +156,30 @@ if args.output_individual:
 
 # output whole and group data
 if args.output_data:
-    print_if_verbose('Saving entire and grouped data outputs...')
+    print_if_verbose('Saving data files...')
     c.to_csv(os.path.join(datadir, c.name + ".csv"))
-    for group_id, group_coll in groups.items():
-        group_coll.to_csv(os.path.join(datadir, group_id + '.csv'))
+    if groups:
+        for group_id, group_coll in groups.items():
+            group_coll.to_csv(os.path.join(datadir, group_id + '.csv'))
 
 # calculate group aggregates
-if len(args.aggr) > 0:
-    print_if_verbose('Calculating group aggregates...')
-for aggr in args.aggr:
-    append = aggr in args.aggr_append
-    aggr_coll = Collection(name=c.name+'_'+aggr,
-                                 spectra=[getattr(group_coll, aggr)(append=append)
-                                          for group_coll in groups.values()],
-                                 measure_type=c.measure_type)
-    # output
-    if args.output_aggregates:
-        print_if_verbose('Saving group {} outputs...'.format(aggr))
-        aggr_coll.to_csv(os.path.join(datadir, aggr_coll.name + '.csv'))
-        aggr_coll.plot(legend=False)
-        plt.savefig(os.path.join(figdir, aggr_coll.name + '.png'), bbox_inches='tight')
-        plt.close()
+if groups:
+    if len(args.aggr) > 0:
+        print_if_verbose('Calculating group aggregates...')
+    for aggr in args.aggr:
+        append = aggr in args.aggr_append
+        aggr_coll = Collection(name=c.name+'_'+aggr,
+                               spectra=[getattr(group_coll, aggr)(append=append)
+                                        for group_coll in groups.values()],
+                               measure_type=c.measure_type)
+        # output
+        if args.output_aggregates:
+            print_if_verbose('Saving group {} outputs...'.format(aggr))
+            aggr_coll.to_csv(os.path.join(datadir, aggr_coll.name + '.csv'))
+            aggr_coll.plot(legend=False)
+            plt.savefig(os.path.join(figdir, aggr_coll.name + '.png'),
+                        bbox_inches='tight')
+            plt.close()
 
 # output whole and group figures (possibly with aggregates appended)
 if args.output_figures:
@@ -183,7 +187,8 @@ if args.output_figures:
     c.plot(legend=False)
     plt.savefig(os.path.join(figdir, c.name + ".png"),  bbox_inches="tight")
     plt.close()
-    for group_id, group_coll in groups.items():
-        group_coll.plot(legend=False)
-        plt.savefig(os.path.join(figdir, group_id + ".png"),  bbox_inches="tight")
-        plt.close()
+    if groups:
+        for group_id, group_coll in groups.items():
+            group_coll.plot(legend=False)
+            plt.savefig(os.path.join(figdir, group_id + ".png"),  bbox_inches="tight")
+            plt.close()
