@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='specdal',
-      version='0.1.4',
+      version='0.1.6.dev1',
       description='Package for processing spectroscopy data',
       long_description=open('README.rst').read(),
       scripts=[
@@ -15,7 +15,7 @@ setup(name='specdal',
       author='Young Lee',
       author_email='ylee546@wisc.edu',
       license='MIT',
-      packages=['specdal', 'specdal.utils'],
+      packages=['specdal', 'specdal.utils', 'specdal.gui',],
       install_requires=['numpy', 'pandas', 'matplotlib', 'scipy'],
       zip_safe=False,
       classifiers=[

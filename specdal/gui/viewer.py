@@ -21,6 +21,8 @@ class Viewer(tk.Frame):
         tk.Frame.__init__(self, parent)
         # toolbar
         self.toolbar = tk.Frame(self)
+        tk.Button(self.toolbar, text='Read', command=lambda:
+                  self.read_dir()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Mode', command=lambda:
                   self.toggle_mode()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Show/Hide Masked',
@@ -98,6 +100,13 @@ class Viewer(tk.Frame):
             self._collection = value
         else:
             self._collection = None
+    def read_dir(self):
+        directory = filedialog.askdirectory()
+        if not directory:
+            return
+        self.collection = Collection(name="collection", directory=directory)
+        self.update()
+        self.update_list()
     def toggle_mode(self):
         if self.spectrum_mode:
             self.spectrum_mode = False
