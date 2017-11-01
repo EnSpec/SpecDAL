@@ -17,9 +17,65 @@ from specdal.collection import Collection
 matplotlib.use('TkAgg')
 
 class Viewer(tk.Frame):
-    def __init__(self, parent, collection):
+    def __init__(self, parent, collection, with_toolbar=True):
         tk.Frame.__init__(self, parent)
         # toolbar
+        if with_toolbar:
+            self.create_toolbar()
+        # canvas
+        self.fig = plt.Figure(figsize=(8, 6))
+        self.ax = self.fig.add_subplot(111)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
+        NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
+        self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH)
+        # spectra list
+        self.scrollbar = ttk.Scrollbar(self)
+        self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
+                                  selectmode=tk.EXTENDED, width=30)
+        self.scrollbar.config(command=self.listbox.yview)
+        self.listbox.pack(side=tk.LEFT, fill=tk.Y)
+        self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        self.listbox.bind('<<ListboxSelect>>', lambda x: self.set_head(self.listbox.curselection()[0]))
+        # toggle options
+        self.mean = False
+        self.median = False
+        self.std = False
+        self.spectrum_mode = False
+        self.show_masked = True
+        # data
+        self.collection = collection
+        self.head = 0
+        self.update(new_lim=True)
+        self.update_list()
+        self.mask_filepath = os.path.abspath('./masked_spectra.txt')
+        # pack
+        self.pack()
+    @property
+    def head(self):
+        return self._head
+    @head.setter
+    def head(self, value):
+        if not hasattr(self, '_head'):
+            self._head = 0
+        else:
+            self._head = value % len(self.collection)
+    def set_head(self, value):
+        self.head = value
+        if self.spectrum_mode:
+            self.update()
+    @property
+    def collection(self):
+        return self._collection
+    @collection.setter
+    def collection(self, value):
+        if isinstance(value, Spectrum):
+            # create new collection
+            self._collection = Collection(name=Spectrum.name, spectra=[value])
+        if isinstance(value, Collection):
+            self._collection = value
+        else:
+            self._collection = None
+    def create_toolbar(self):
         self.toolbar = tk.Frame(self)
         tk.Button(self.toolbar, text='Read', command=lambda:
                   self.read_dir()).pack(side=tk.LEFT)
@@ -46,67 +102,16 @@ class Viewer(tk.Frame):
         tk.Button(self.toolbar, text='std', command=lambda:
                   self.toggle_std()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
-        # canvas
-        self.fig = plt.Figure(figsize=(6,6))
-        self.ax = self.fig.add_subplot(111)
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
-        NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
-        self.canvas.get_tk_widget().pack(side=tk.LEFT)
-        # spectra list
-        self.scrollbar = ttk.Scrollbar(self)
-        self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
-                                  selectmode=tk.EXTENDED, width=30)
-        self.scrollbar.config(command=self.listbox.yview)
-        self.listbox.pack(side=tk.LEFT, fill=tk.Y)
-        self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.listbox.bind('<<ListboxSelect>>', lambda x: self.set_head(self.listbox.curselection()[0]))
-        # toggle options
-        self.mean = False
-        self.median = False
-        self.std = False
-        self.spectrum_mode = False
-        self.show_masked = True
-        # data
+    def set_collection(self, collection):
         self.collection = collection
-        self.head = 0
-        self.update(new_lim=True)
+        self.update()
         self.update_list()
-        self.mask_filepath = os.path.abspath('./masked_spectra.txt')
-        # pack
-        self.pack()
-        
-    @property
-    def head(self):
-        return self._head
-    @head.setter
-    def head(self, value):
-        if not hasattr(self, '_head'):
-            self._head = 0
-        else:
-            self._head = value % len(self.collection)
-    def set_head(self, value):
-        self.head = value
-        if self.spectrum_mode:
-            self.update()
-    @property
-    def collection(self):
-        return self._collection
-    @collection.setter
-    def collection(self, value):
-        if isinstance(value, Spectrum):
-            # create new collection
-            self._collection = Collection(name=Spectrum.name, spectra=[value])
-        if isinstance(value, Collection):
-            self._collection = value
-        else:
-            self._collection = None
     def read_dir(self):
         directory = filedialog.askdirectory()
         if not directory:
             return
-        self.collection = Collection(name="collection", directory=directory)
-        self.update()
-        self.update_list()
+        c = Collection(name="collection", directory=directory)
+        self.set_collection(c)
     def toggle_mode(self):
         if self.spectrum_mode:
             self.spectrum_mode = False
