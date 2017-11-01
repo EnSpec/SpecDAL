@@ -180,8 +180,10 @@ class Viewer(tk.Frame):
             mask_style = ' '
             if self.show_masked:
                 mask_style = 'r'
-            Collection(name='selection', spectra=spectra).plot(ax=self.ax,
-                                                               style=list(np.where(masks, mask_style, 'k')))
+            Collection(name='selection',
+                       spectra=spectra).plot(ax=self.ax,
+                                             style=list(np.where(masks, mask_style, 'k')),
+                                             picker=1)
             self.ax.set_title('selection')            
             # c = str(np.where(spectrum.name in self.collection.masks, 'r', 'k'))
             # spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
@@ -192,8 +194,16 @@ class Viewer(tk.Frame):
                 mask_style = 'r'
             masks = [s.name in self.collection.masks for s in self.collection.spectra]
             self.collection.plot(ax=self.ax,
-                                 style=list(np.where(masks, mask_style, 'k')))
+                                 style=list(np.where(masks, mask_style, 'k')),
+                                 picker=1)
             self.ax.set_title(self.collection.name)
+
+        def onpick(event):
+            spectrum_name = event.artist.get_label()
+            pos = list(self.collection._spectra.keys()).index(spectrum_name)
+            self.listbox.selection_set(pos)
+        self.fig.canvas.mpl_connect('pick_event', onpick)
+
             
         if self.mean:
             self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean')
