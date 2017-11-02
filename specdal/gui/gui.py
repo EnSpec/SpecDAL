@@ -142,8 +142,8 @@ class Menubar(tk.Menu):
         viewMenu.add_command(label="Show/Hide Masked", command=lambda: self.master.viewer.toggle_show_masked())
         viewMenu.add_command(label="Mean", command=lambda: self.master.viewer.toggle_mean())
         viewMenu.add_command(label="Median", command=lambda: self.master.viewer.toggle_median())
-        viewMenu.add_command(label="Min", command=lambda: print('Not Implemented'))
-        viewMenu.add_command(label="Max", command=lambda: print('Not Implemented'))
+        viewMenu.add_command(label="Max", command=lambda: self.master.viewer.toggle_max())
+        viewMenu.add_command(label="Min", command=lambda: self.master.viewer.toggle_min())
         viewMenu.add_command(label="Std", command=lambda: self.master.viewer.toggle_std())
         self.add_cascade(label="View", menu=viewMenu)
 

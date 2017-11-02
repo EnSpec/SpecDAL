@@ -39,6 +39,8 @@ class Viewer(tk.Frame):
         # toggle options
         self.mean = False
         self.median = False
+        self.max = False
+        self.min = False
         self.std = False
         self.spectrum_mode = False
         self.show_masked = True
@@ -99,6 +101,10 @@ class Viewer(tk.Frame):
                   self.toggle_mean()).pack(side=tk.LEFT)       
         tk.Button(self.toolbar, text='median', command=lambda:
                   self.toggle_median()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='max', command=lambda:
+                  self.toggle_max()).pack(side=tk.LEFT)       
+        tk.Button(self.toolbar, text='min', command=lambda:
+                  self.toggle_min()).pack(side=tk.LEFT)       
         tk.Button(self.toolbar, text='std', command=lambda:
                   self.toggle_std()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
@@ -209,6 +215,10 @@ class Viewer(tk.Frame):
             self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean')
         if self.median:
             self.collection.median().plot(ax=self.ax, c='g', label=self.collection.name + '_median')
+        if self.max:
+            self.collection.max().plot(ax=self.ax, c='y', label=self.collection.name + '_max')
+        if self.min:
+            self.collection.min().plot(ax=self.ax, c='m', label=self.collection.name + '_min')
         if self.std:
             self.collection.std().plot(ax=self.ax, c='c', label=self.collection.name + '_std')
         # reapply limits
@@ -254,6 +264,18 @@ class Viewer(tk.Frame):
             self.median = False
         else:
             self.median = True
+        self.update()
+    def toggle_max(self):
+        if self.max:
+            self.max = False
+        else:
+            self.max = True
+        self.update()
+    def toggle_min(self):
+        if self.min:
+            self.min = False
+        else:
+            self.min = True
         self.update()
     def toggle_std(self):
         if self.std:
