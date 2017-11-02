@@ -3,6 +3,8 @@ import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+import tkinter.simpledialog as tksd
+
 sys.path.insert(0, os.path.abspath("../.."))
 import matplotlib
 matplotlib.use('TkAgg')
@@ -38,9 +40,16 @@ class SpecdalGui(tk.Tk):
             Collection(name="collection" + str(self.collectionList.listbox.size()), directory=directory))
 
     def group_by(self, collection=None):
+        separator = tksd.askstring("separator", "Enter separator pattern", initialvalue="_")
+        if separator is None:
+            return
+        indices = tksd.askstring("indices", "Enter indices to group by (comma separated)", initialvalue="0")
+        if indices is None:
+            return
+        indices = list(map(int, indices.replace(" ", "").split(",")))
         if collection is None:
             collection = self.collectionList.currentCollection
-        groups = collection.groupby(separator='_', indices=[0, 1], filler=None)
+        groups = collection.groupby(separator=separator, indices=indices, filler=None)
         for gname, gcoll in groups.items():
             gcoll.name = collection.name + " (" + gcoll.name + ")"
             self.collectionList.add_collection(gcoll)
