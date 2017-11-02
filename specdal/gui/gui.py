@@ -164,8 +164,7 @@ def read_test_data():
     return c
 
 def main():
-    # root = tk.Tk()
-    gui = SpecdalGui([read_test_data()])
+    gui = SpecdalGui()
     gui.mainloop()
     
 

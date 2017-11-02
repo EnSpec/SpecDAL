@@ -17,7 +17,7 @@ from specdal.collection import Collection
 matplotlib.use('TkAgg')
 
 class Viewer(tk.Frame):
-    def __init__(self, parent, collection, with_toolbar=True):
+    def __init__(self, parent, collection=None, with_toolbar=True):
         tk.Frame.__init__(self, parent)
         # toolbar
         if with_toolbar:
@@ -47,9 +47,10 @@ class Viewer(tk.Frame):
         # data
         self.collection = collection
         self.head = 0
-        self.update(new_lim=True)
-        self.update_list()
         self.mask_filepath = os.path.abspath('./masked_spectra.txt')
+        if collection:
+            self.update(new_lim=True)
+            self.update_list()
         # pack
         self.pack()
     @property
@@ -109,8 +110,9 @@ class Viewer(tk.Frame):
                   self.toggle_std()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
     def set_collection(self, collection):
+        new_lim = True if self.collection is None else False
         self.collection = collection
-        self.update()
+        self.update(new_lim=new_lim)
         self.update_list()
     def read_dir(self):
         directory = filedialog.askdirectory()
@@ -284,13 +286,15 @@ class Viewer(tk.Frame):
             self.std = True
         self.update()
 
-def main():
+def read_test_data():
     path = '~/data/specdal/aidan_data2/ASD'
     c = Collection("Test Collection", directory=path)
     for i in range(30):
         c.mask(c.spectra[i].name)
+
+def main():
     root = tk.Tk()
-    v = Viewer(root, c)
+    v = Viewer(root, None)
     v.update()
     root.mainloop()
 
