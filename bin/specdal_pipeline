@@ -34,8 +34,8 @@ parser.add_argument('-n', '--name', type=str, action='store',
 parser.add_argument('-r', '--resample', default=None,
                     choices=['slinear', 'cubic'],
                     help='interpolation method')
-parser.add_argument('-rs', '--resample_spacing', metavar='SPC', nargs=1,
-                    type=int, default=1,
+parser.add_argument('-rs', '--resample_spacing', metavar='SPC',
+                    action="store", type=int, default=1,
                     help='spacing for resampling (in nm)')
 ## overlap stitcher
 parser.add_argument('-s', '--stitch', default=None,
@@ -49,13 +49,13 @@ parser.add_argument('-js', '--jump_correct_splices', metavar='WVL',
                     default=[1000, 1800], type=int, nargs='+',
                     help='wavelengths of jump locations')
 parser.add_argument('-jr', '--jump_correct_reference', metavar='REF',
-                    type=int, nargs=1, default=0, help='position of'
+                    type=int, action='store', default=0, help='position of'
                     'the reference detector')
 # groupby
 parser.add_argument('-g', '--group_by', action='store_true',
                     help='create groups using filenames')
-parser.add_argument('-gs', '--group_by_separator',
-                    metavar='S', nargs=1, default='_',
+parser.add_argument('-gs', '--group_by_separator',  type=str,
+                    metavar='S', default='_',
                     help='separator sequence to split the file names')
 parser.add_argument('-gi', '--group_by_indices', metavar='I', nargs='*', type=int,
                     help='indices of the split filenames to define a group')
