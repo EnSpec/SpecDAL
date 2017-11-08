@@ -71,6 +71,7 @@ parser.add_argument('--group_append', dest='aggr_append', nargs='+', default=[],
 parser.add_argument('-d', '--debug', action='store_true')
 # misc
 parser.add_argument('-q', '--quiet', default=False, action='store_true')
+parser.add_argument('-f', '--force', default=False, action='store_true')
 parser.add_argument('--proximal', default=None, metavar='PATH', action='store',
                     help='path containing base measurement spectral files')
 
@@ -91,15 +92,25 @@ indir = abspath(expanduser(args.input_dir))
 outdir = abspath(expanduser(args.output_dir))
 datadir = os.path.join(outdir, 'data')
 figdir = os.path.join(outdir, 'figures')
-assert os.path.exists(indir)
+
+if not os.path.exists(indir):
+    raise FileNotFoundError("path " + indir + " does not exist")
+
 if args.debug is True:
     import shutil
     if os.path.isdir('./specdal_output/'):
         shutil.rmtree('./specdal_output/')
-assert not os.path.exists(outdir)
+
+if os.path.exists(outdir):
+    if args.force:
+        print("output path " + outdir + " already exists.")
+        print("previous output may be overwritten.")
+    else:
+        raise FileExistsError("output path " + outdir + " already exists")
+
 # make output directories
 for d in (outdir, datadir, figdir):
-    os.makedirs(d)
+    os.makedirs(d, exist_ok=True)
 
 c = Collection(name=args.name)
 print_if_verbose('Reading target measurements from ' + indir)
