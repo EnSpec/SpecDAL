@@ -7,6 +7,8 @@ Welcome to specdal's documentation!
 ===================================
 
 .. toctree::
+   introduction
+   installation
    api
    specdal_pipeline
    :maxdepth: 2
