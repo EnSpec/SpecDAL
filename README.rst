@@ -3,7 +3,7 @@ Introduction
 
 ``specdal`` is a Python package for loading and manipulating field
 spectroscopy data. It currently supports readers for ASD, SVC, and PSR
-spectremeters. ``specdal`` provides useful functions and command line
+spectrometers. ``specdal`` provides useful functions and command line
 scripts for processing and aggregating the data.
 
 Features
@@ -32,7 +32,9 @@ Features
      
    - ``Spectrum`` and ``Collection`` classes which wrap around pandas
      objects to provide simpler interface
-     
+
+3. GUI (under development)
+   
 Tutorials
 =========
 
@@ -70,6 +72,13 @@ Via pip
 
 Development version
 -------------------
+
+   ::
+      
+      $ pip3 install specdal --pre
+
+From Github
+-----------
 
 1. Open terminal or Git-bash and navigate to the desired directory using
    ``cd <directory>``.
