@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 import matplotlib
 sys.path.insert(0, os.path.abspath("../.."))
 from specdal.spectrum import Spectrum
+from collections import Iterable
 from specdal.collection import Collection
 matplotlib.use('TkAgg')
 
@@ -35,7 +36,7 @@ class Viewer(tk.Frame):
         self.scrollbar.config(command=self.listbox.yview)
         self.listbox.pack(side=tk.LEFT, fill=tk.Y)
         self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.listbox.bind('<<ListboxSelect>>', lambda x: self.set_head(self.listbox.curselection()[0]))
+        self.listbox.bind('<<ListboxSelect>>', lambda x: self.set_head(self.listbox.curselection()))
         # toggle options
         self.mean = False
         self.median = False
@@ -63,6 +64,11 @@ class Viewer(tk.Frame):
         else:
             self._head = value % len(self.collection)
     def set_head(self, value):
+        if isinstance(value, Iterable):
+            if len(value) > 0:
+                value = value[0]
+            else:
+                value = 0
         self.head = value
         if self.spectrum_mode:
             self.update()
