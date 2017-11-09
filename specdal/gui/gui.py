@@ -4,7 +4,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import tkinter.simpledialog as tksd
-
 sys.path.insert(0, os.path.abspath("../.."))
 import matplotlib
 matplotlib.use('TkAgg')
@@ -113,19 +112,23 @@ class CollectionList(tk.Frame):
                 self.set_cur()
             self.collections.__delitem__(name)
 
+def not_implemented_message(feature_name):
+    tk.messagebox.showinfo(feature_name, "Not implemented")
+    pass
+
 class Menubar(tk.Menu):
     # parent is the SpecdalGui class
     def __init__(self, parent):
         tk.Menu.__init__(self, parent)
         # File
         fileMenu = tk.Menu(self, tearoff=0)
-        fileMenu.add_command(label="open", command=lambda: print('Not Implemented'))
-        fileMenu.add_command(label="read file", command=lambda: print('Not Implemented'))
+        fileMenu.add_command(label="open", command=lambda: not_implemented_message("open"))
+        fileMenu.add_command(label="read file", command=lambda: not_implemented_message("read file"))
         fileMenu.add_command(label="read directory", command=lambda: self.master.read_dir())
-        fileMenu.add_command(label="read csv", command=lambda: print('Not Implemented'))
-        fileMenu.add_command(label="save", command=lambda: print('Not Implemented'))
-        fileMenu.add_command(label="save as", command=lambda: print('Not Implemented'))
-        fileMenu.add_command(label="close", command=lambda: print('Not Implemented'))
+        fileMenu.add_command(label="read csv", command=lambda: not_implemented_message("read csv"))
+        fileMenu.add_command(label="save", command=lambda: not_implemented_message("save"))
+        fileMenu.add_command(label="save as", command=lambda: not_implemented_message("save as"))
+        fileMenu.add_command(label="close", command=lambda: not_implemented_message("close"))
         self.add_cascade(label="File", menu=fileMenu)
         
         # Edit
@@ -133,7 +136,7 @@ class Menubar(tk.Menu):
         editMenu.add_command(label="mask/unmask", command=lambda: self.master.viewer.toggle_mask())
         editMenu.add_command(label="remove collection", command=lambda: self.master.collectionList.remove_selection())
 
-        editMenu.add_command(label="setting", command=lambda: print('Not Implemented'))
+        editMenu.add_command(label="setting", command=lambda: not_implemented_message("setting"))
         self.add_cascade(label="Edit", menu=editMenu)
 
         # View
