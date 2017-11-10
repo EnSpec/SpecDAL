@@ -4,18 +4,6 @@ API Reference
 
 This is the class and function reference page of SpecDAL.
 
-Collection
-==========
-
-.. autoclass:: specdal.collection.Collection
-   :members: 
-
-Spectrum
-========
-
-.. automodule:: specdal.spectrum
-   :members:
-
 Operators
 =========
 
@@ -27,3 +15,14 @@ get_column_types - TODO: move this function to utils module).
 .. automodule:: specdal.operator
    :members:
 
+Spectrum
+========
+
+.. automodule:: specdal.spectrum
+   :members:
+
+Collection
+==========
+
+.. autoclass:: specdal.collection.Collection
+   :members: 

@@ -1,16 +1,13 @@
-.. specdal documentation master file, created by
-   sphinx-quickstart on Wed Oct  4 14:05:24 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to specdal's documentation!
-===================================
+SpecDAL Reference
+=================
 
 .. toctree::
    introduction
    installation
+   data_model
    api
    specdal_pipeline
+   specdal_info
    :maxdepth: 2
    :caption: Contents:
 

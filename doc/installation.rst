@@ -2,12 +2,13 @@
 Installation
 ============
 
-SpecDAL is available via pip or on Github. This page provides detailed
-walkthrough of the installation process intended for users who are not
-comfortable in Python environment. 
+SpecDAL is available via pip (``pip install specdal``) or on `Github
+<https://github.com/EnSpec/SpecDAL.git/>`_. This page provides
+detailed walkthrough of the installation process intended for users
+who are not comfortable in Python environment.
 
-Prerequisite
-============
+Prerequisites
+=============
 
 - python3
 - pip3
@@ -94,11 +95,10 @@ Install via pip
 Install from Github
 ===================
 
-SpecDAL can be found on Enspec's Github repo_. Stable release can be
+SpecDAL can be found on Enspec's Github `repo
+<https://github.com/EnSpec/SpecDAL.git/>`_. Stable release can be
 found on ``master`` branch and the development version on ``dev``
 branch.
-
-.. _repo: https://github.com/EnSpec/SpecDAL.git/
 
 Github walkthrough
 ------------------
