@@ -36,7 +36,7 @@ class Spectrum(object):
     """
     def __init__(self, name=None, filepath=None, measurement=None,
                  measure_type='pct_reflect', metadata=None,
-                 resampled=False, stitched=False, jump_corrected=False,
+                 interpolated=False, stitched=False, jump_corrected=False,
                  verbose=False):
         if name is None:
             assert filepath is not None
@@ -45,7 +45,7 @@ class Spectrum(object):
         self.measurement = measurement
         self.measure_type = measure_type
         self.metadata = metadata
-        self.resampled = resampled
+        self.interpolated = interpolated
         self.stitched = stitched
         self.jump_corrected = jump_corrected
         if filepath:
@@ -82,11 +82,11 @@ class Spectrum(object):
         self.measurement = data[measure_type]
     ##################################################
     # wrappers around spectral operations
-    def resample(self, spacing=1, method='slinear'):
+    def interpolate(self, spacing=1, method='slinear'):
         '''
         '''
-        self.measurement = op.resample(self.measurement, spacing, method)
-        self.resampled = True
+        self.measurement = op.interpolate(self.measurement, spacing, method)
+        self.interpolated = True
     def stitch(self, method='mean'):
         '''
         '''

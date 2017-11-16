@@ -9,8 +9,8 @@ from .utils.misc import get_monotonic_series
 ################################################################################
 
 ################################################################################
-# resample: interpolate at given spacing
-def resample(series, spacing=1, method='slinear'):
+# interpolate: interpolate at given spacing
+def interpolate(series, spacing=1, method='slinear'):
     """
     Interpolate the array into given spacing
     

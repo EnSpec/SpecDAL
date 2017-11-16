@@ -232,11 +232,11 @@ class Collection(object):
                 self.append(spectrum)
     ##################################################
     # wrapper around spectral operations
-    def resample(self, spacing=1, method='slinear'):
+    def interpolate(self, spacing=1, method='slinear'):
         '''
 	'''
         for spectrum in self.spectra:
-            spectrum.resample(spacing, method)
+            spectrum.interpolate(spacing, method)
     def stitch(self, method='mean'):
         '''
 	'''
