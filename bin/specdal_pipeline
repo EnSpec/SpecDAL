@@ -125,9 +125,9 @@ if args.proximal_reference:
 
 if args.interpolate:
     print_if_verbose('interpolating...')
-    c.resample(spacing=args.interpolate_spacing, method=args.interpolate)
+    c.interpolate(spacing=args.interpolate_spacing, method=args.interpolate)
     if args.proximal_reference:
-        c_base.resample(spacing=args.interpolate_spacing, method=args.interpolate)
+        c_base.interpolate(spacing=args.interpolate_spacing, method=args.interpolate)
 if args.stitch:
     print_if_verbose('Stitching...')
     c.stitch(method=args.stitch)
