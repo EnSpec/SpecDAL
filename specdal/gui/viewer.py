@@ -44,11 +44,11 @@ class Viewer(tk.Frame):
         self.min = False
         self.std = False
         self.spectrum_mode = False
-        self.show_masked = True
+        self.show_flagged = True
         # data
         self.collection = collection
         self.head = 0
-        self.mask_filepath = os.path.abspath('./masked_spectra.txt')
+        self.flag_filepath = os.path.abspath('./flagged_spectra.txt')
         if collection:
             self.update(new_lim=True)
             self.update_list()
@@ -90,16 +90,16 @@ class Viewer(tk.Frame):
                   self.read_dir()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Mode', command=lambda:
                   self.toggle_mode()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Show/Hide Masked',
-                  command=lambda: self.toggle_show_masked()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Mask/Unmask', command=lambda:
-                  self.toggle_mask()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Unmask all', command=lambda:
-                  self.unmask_all()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Save Mask', command=lambda:
-                  self.save_mask()).pack(side=tk.LEFT)
-        tk.Button(self.toolbar, text='Save Mask As', command=lambda:
-                  self.save_mask_as()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Show/Hide Flagged',
+                  command=lambda: self.toggle_show_flagged()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Flag/Unflag', command=lambda:
+                  self.toggle_flag()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Unflag all', command=lambda:
+                  self.unflag_all()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Save Flag', command=lambda:
+                  self.save_flag()).pack(side=tk.LEFT)
+        tk.Button(self.toolbar, text='Save Flag As', command=lambda:
+                  self.save_flag_as()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Stitch', command=lambda:
                   self.stitch()).pack(side=tk.LEFT)
         tk.Button(self.toolbar, text='Jump_Correct', command=lambda:
@@ -132,46 +132,46 @@ class Viewer(tk.Frame):
         else:
             self.spectrum_mode = True
         self.update()
-    def toggle_show_masked(self):
-        if self.show_masked:
-            self.show_masked = False
+    def toggle_show_flagged(self):
+        if self.show_flagged:
+            self.show_flagged = False
         else:
-            self.show_masked = True
+            self.show_flagged = True
         self.update()
-    def unmask_all(self):
-        for spectrum in list(self.collection.masks):
-            self.collection.unmask(spectrum)
+    def unflag_all(self):
+        for spectrum in list(self.collection.flags):
+            self.collection.unflag(spectrum)
         self.update()
         self.update_list()
-    def toggle_mask(self):
+    def toggle_flag(self):
         idx = self.listbox.curselection()
         for i in idx:
             spectrum = self.collection.spectra[i].name
-            if spectrum in self.collection.masks:
-                self.collection.unmask(spectrum)
+            if spectrum in self.collection.flags:
+                self.collection.unflag(spectrum)
                 self.listbox.itemconfigure(i, foreground='black')
             else:
-                self.collection.mask(spectrum)
+                self.collection.flag(spectrum)
                 self.listbox.itemconfigure(i, foreground='red')
         # update figure
         self.update()
-    def save_mask(self):
-        ''' save mask to self.mask_filepath'''
-        with open(self.mask_filepath, 'w') as f:
-            for spectrum in self.collection.masks:
+    def save_flag(self):
+        ''' save flag to self.flag_filepath'''
+        with open(self.flag_filepath, 'w') as f:
+            for spectrum in self.collection.flags:
                 print(spectrum, file=f)
-    def save_mask_as(self):
-        ''' modify self.mask_filepath and call save_mask()'''
-        mask_filepath = filedialog.asksaveasfilename()
-        if os.path.splitext(mask_filepath)[1] == '':
-            mask_filepath = mask_filepath + '.txt'
-        self.mask_filepath = mask_filepath
-        self.save_mask()
+    def save_flag_as(self):
+        ''' modify self.flag_filepath and call save_flag()'''
+        flag_filepath = filedialog.asksaveasfilename()
+        if os.path.splitext(flag_filepath)[1] == '':
+            flag_filepath = flag_filepath + '.txt'
+        self.flag_filepath = flag_filepath
+        self.save_flag()
     def update_list(self):
         self.listbox.delete(0, tk.END)
         for i, spectrum in enumerate(self.collection.spectra):
             self.listbox.insert(tk.END, spectrum.name)
-            if spectrum.name in self.collection.masks:
+            if spectrum.name in self.collection.flags:
                 self.listbox.itemconfigure(i, foreground='red')
                 
     def update(self, new_lim=False):
@@ -190,25 +190,25 @@ class Viewer(tk.Frame):
             if len(idx) == 0:
                 idx = [self.head]
             spectra = [self.collection.spectra[i] for i in idx]
-            masks = [s.name in self.collection.masks for s in spectra]
-            mask_style = ' '
-            if self.show_masked:
-                mask_style = 'r'
+            flags = [s.name in self.collection.flags for s in spectra]
+            flag_style = ' '
+            if self.show_flagged:
+                flag_style = 'r'
             Collection(name='selection',
                        spectra=spectra).plot(ax=self.ax,
-                                             style=list(np.where(masks, mask_style, 'k')),
+                                             style=list(np.where(flags, flag_style, 'k')),
                                              picker=1)
             self.ax.set_title('selection')            
-            # c = str(np.where(spectrum.name in self.collection.masks, 'r', 'k'))
+            # c = str(np.where(spectrum.name in self.collection.flags, 'r', 'k'))
             # spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
         else:
-            # red curves for masked spectra
-            mask_style = ' '
-            if self.show_masked:
-                mask_style = 'r'
-            masks = [s.name in self.collection.masks for s in self.collection.spectra]
+            # red curves for flagged spectra
+            flag_style = ' '
+            if self.show_flagged:
+                flag_style = 'r'
+            flags = [s.name in self.collection.flags for s in self.collection.spectra]
             self.collection.plot(ax=self.ax,
-                                 style=list(np.where(masks, mask_style, 'k')),
+                                 style=list(np.where(flags, flag_style, 'k')),
                                  picker=1)
             self.ax.set_title(self.collection.name)
 
@@ -296,7 +296,7 @@ def read_test_data():
     path = '~/data/specdal/aidan_data2/ASD'
     c = Collection("Test Collection", directory=path)
     for i in range(30):
-        c.mask(c.spectra[i].name)
+        c.flag(c.spectra[i].name)
 
 def main():
     root = tk.Tk()

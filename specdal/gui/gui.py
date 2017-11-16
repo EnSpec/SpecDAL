@@ -133,7 +133,7 @@ class Menubar(tk.Menu):
         
         # Edit
         editMenu = tk.Menu(self, tearoff=0)
-        editMenu.add_command(label="mask/unmask", command=lambda: self.master.viewer.toggle_mask())
+        editMenu.add_command(label="flag/unflag", command=lambda: self.master.viewer.toggle_flag())
         editMenu.add_command(label="remove collection", command=lambda: self.master.collectionList.remove_selection())
 
         editMenu.add_command(label="setting", command=lambda: not_implemented_message("setting"))
@@ -142,7 +142,7 @@ class Menubar(tk.Menu):
         # View
         viewMenu = tk.Menu(self, tearoff=0)
         viewMenu.add_command(label="Collection/Spectra Mode", command=lambda: self.master.viewer.toggle_mode())
-        viewMenu.add_command(label="Show/Hide Masked", command=lambda: self.master.viewer.toggle_show_masked())
+        viewMenu.add_command(label="Show/Hide Flagged", command=lambda: self.master.viewer.toggle_show_flagged())
         viewMenu.add_command(label="Mean", command=lambda: self.master.viewer.toggle_mean())
         viewMenu.add_command(label="Median", command=lambda: self.master.viewer.toggle_median())
         viewMenu.add_command(label="Max", command=lambda: self.master.viewer.toggle_max())
@@ -163,7 +163,7 @@ def read_test_data():
     path = '~/data/specdal/aidan_data2/ASD'
     c = Collection("Test Collection", directory=path)
     for i in range(30):
-        c.mask(c.spectra[i].name)
+        c.flag(c.spectra[i].name)
     return c
 
 def main():
