@@ -1,3 +1,5 @@
+Visit our `ReadTheDocs <http://specdal.readthedocs.io/en/latest/>`_.
+
 Introduction
 ============
 
@@ -31,81 +33,20 @@ Features
      - joining proximal measurements (WIP)
      
    - ``Spectrum`` and ``Collection`` classes which wrap around pandas
-     objects to provide simpler interface
+     objects to provide simpler interface for spectral functions
 
 3. GUI (under development)
    
 Tutorials
 =========
 
-See the Jupyter notebooks in (PROVIDE A LINK HERE).
+See the Jupyter notebooks `here
+<https://github.com/EnSpec/SpecDAL/tree/master/specdal/examples/>`_.
 
 
 Installation
 ============
 
-Prerequisite
-------------
-
-1. Setup virtualenv (recommended)
-
-   ::
-
-      $ pip install --user virtualenv
-      $ mkdir ~/venv
-      $ virtualenv -p python3 ~/venv/specdal
-      $ source ~/venv/specdal/bin/activate
-      
-      $ ... # install/use specdal
-      
-      $ deactivate
-
-Via pip
--------
-
-1. Install Python 3
-
-   ::
-      
-      $ pip3 install specdal --upgrade
-
-
-Development version
--------------------
-
-   ::
-      
-      $ pip3 install specdal --pre
-
-From Github
------------
-
-1. Open terminal or Git-bash and navigate to the desired directory using
-   ``cd <directory>``.
-2. The following command will create a directory ``SpecDAL``
-   containing ``SpecDAL``:
-
-   ::
-
-      $ git clone https://github.com/EnSpec/SpecDAL.git
-      $ cd SpecDAL
-      
-3. To update the package, go to ``SpecDAL`` directory and run the
-   following command:
-
-   ::
-
-       $ git pull origin master
-
-4. To install ``specdal`` in development mode
-
-   ::
-      
-      $ source ~/venv/specdal/bin/activate # recommended (see virtualenv section)
-      $ pip3 install -r requirements.txt
-      $ python setup.py develop
-      
-      $ ... # edit and test specdal
-      
-      $ python setup.py develop --uninstall
-
+SpecDAL can be installed from PyPI using pip. For a more detailed
+walkthrough, see
+`http://specdal-test.readthedocs.io/en/latest/installation.html`
