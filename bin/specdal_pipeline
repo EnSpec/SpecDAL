@@ -98,21 +98,17 @@ if not os.path.exists(indir):
     raise FileNotFoundError("path " + indir + " does not exist")
 
 if os.path.exists(outdir):
-    if args.force:
-        # double check before removing path for caution
-        print("output path " + outdir + " already exists.")
-        while True:
-            ans = input(outdir + ' already exists. Are you sure you want to remove its contents? [y/n]: ')
-            ans = ans.strip().lower()
-            if ans == 'y':
-                print('removing {}'.format(outdir))
-                shutil.rmtree(outdir)
-                break
-            elif ans == 'n':
-                print('exiting pipeline...')
-                sys.exit(0)
-    else:
-        raise FileExistsError("output path " + outdir + " already exists")
+    while not args.force:
+        # prompt user for action
+        ans = input(outdir + ' already exists. Are you sure you want to remove its contents? [y/n]: ')
+        ans = ans.strip().lower()
+        if ans == 'y':
+            args.force = True
+        elif ans == 'n':
+            print('exiting pipeline...')
+            sys.exit(0)
+    print('removing {}'.format(outdir))
+    shutil.rmtree(outdir)
 
 # make output directories
 for d in (outdir, datadir, figdir):
