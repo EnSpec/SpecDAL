@@ -112,7 +112,7 @@ def vector_normalize(series):
     '''
     normalize the values such that sum(values ** 2) == 1
     '''
-    return x / np.sqrt(np.sum(x ** 2))
+    return series / np.sqrt(np.sum(series ** 2))
 
 ################################################################################
 # DataFrame operations (collection of spectra)
