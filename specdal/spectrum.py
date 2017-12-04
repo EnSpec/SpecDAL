@@ -37,6 +37,7 @@ class Spectrum(object):
     def __init__(self, name=None, filepath=None, measurement=None,
                  measure_type='pct_reflect', metadata=None,
                  interpolated=False, stitched=False, jump_corrected=False,
+                 vector_normalized=False, derivative_order=0,
                  verbose=False):
         if name is None:
             assert filepath is not None
@@ -48,6 +49,8 @@ class Spectrum(object):
         self.interpolated = interpolated
         self.stitched = stitched
         self.jump_corrected = jump_corrected
+        self.vector_normalized = vector_normalized
+        self.derivative_order = derivative_order
         if filepath:
             self.read(filepath, measure_type, verbose=verbose)
     def __str__(self):
@@ -97,6 +100,17 @@ class Spectrum(object):
         '''
         self.measurement = op.jump_correct(self.measurement, splices, reference, method)
         self.jump_corrected = True
+    def vector_normalize(self):
+        '''
+        '''
+        self.measurement = op.vector_normalize(self.measurement)
+        self.vector_normalized = True
+    def derivative(self):
+        '''
+        '''
+        self.measurement = op.derivative(self.measurement)
+        self.derivative_order += 1
+        
     ##################################################
     # wrapper around plot function
     def plot(self, *args, **kwargs):

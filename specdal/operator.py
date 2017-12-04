@@ -102,10 +102,17 @@ def jump_correct_additive(series, splices, reference):
 # derivative: calculate derivative of a spectrum
 def derivative(series):
     '''
-    Calculate the spectral derivative. Not Implemented Yet.
+    Calculate the spectral derivative.
     '''
-    pass
+    return pd.Series(np.gradient(series), index=series.index)
 
+################################################################################
+# vector_normalize: divide the series such that 2-norm(series) == 1
+def vector_normalize(series):
+    '''
+    normalize the values such that sum(values ** 2) == 1
+    '''
+    return x / np.sqrt(np.sum(x ** 2))
 
 ################################################################################
 # DataFrame operations (collection of spectra)

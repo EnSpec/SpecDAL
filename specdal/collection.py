@@ -223,6 +223,17 @@ class Collection(object):
 	'''
         for spectrum in self.spectra:
             spectrum.jump_correct(splices, reference, method)
+    def vector_normalize(self):
+        '''
+        '''
+        for spectrum in self.spectra:
+            spectrum.vector_normalize()
+    def derivative(self):
+        '''
+        '''
+        for spectrum in self.spectra:
+            spectrum.derivative()
+            
     ##################################################
     # group operations
     def groupby(self, separator, indices, filler=None):
