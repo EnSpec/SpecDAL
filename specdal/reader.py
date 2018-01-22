@@ -115,8 +115,7 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
         metadata['gps_time_tgt'] = None
         metadata['gps_time_ref'] = None
         if raw_metadata['gpstime'] != ',':
-            metadata['gps_time_ref'], metadata['gps_time_tgt'] = tuple(
-                map(float, raw_metadata['gpstime'].replace(' ', '').split(',')))
+            metadata['gps_time_ref'], metadata['gps_time_tgt'] = tuple(None if x == '' else float(x) for x in raw_metadata['gpstime'].replace(' ', '').split(','))
         metadata['wavelength_range'] = None
         if read_data:
             metadata['wavelength_range'] = (data.index.min(), data.index.max())

@@ -1,0 +1,2 @@
+v0.2.0, November 16, 2017 -- initial release of 0.2.0
+v0.2.1, January 19, 2018 -- fix partially empty gpstime in sig reader
