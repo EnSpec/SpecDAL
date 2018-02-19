@@ -1,7 +1,11 @@
 from setuptools import setup
 
 setup(name='specdal',
+<<<<<<< HEAD
+      version='0.1.6.dev4',
+=======
       version='0.2.0',
+>>>>>>> master
       description='Package for processing spectroscopy data',
       long_description=open('README.rst').read(),
       scripts=[
@@ -9,12 +13,13 @@ setup(name='specdal',
           'bin/specdal_info',
       ],
       entry_points={
+          'gui_scripts': ['specdal_gui = specdal.gui.viewer:main'],
       },
       url='https://github.com/EnSpec/SpecDAL/',
       author='Young Lee',
       author_email='ylee546@wisc.edu',
       license='MIT',
-      packages=['specdal', 'specdal.utils'],
+      packages=['specdal', 'specdal.utils', 'specdal.gui',],
       install_requires=['numpy', 'pandas', 'matplotlib', 'scipy'],
       zip_safe=False,
       classifiers=[
