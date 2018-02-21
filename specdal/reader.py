@@ -13,6 +13,7 @@ def read(filepath, read_data=True, read_metadata=True, verbose=False):
     """
     SUPPORTED_READERS = {'.asd':read_asd , '.sig':read_sig , '.sed':read_sed }
     ext = splitext(filepath)[1]
+    assert ext in SUPPORTED_READERS
     reader = SUPPORTED_READERS[ext]
     return reader(abspath(expanduser(filepath)), read_data,
                   read_metadata, verbose)
