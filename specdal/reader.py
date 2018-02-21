@@ -41,7 +41,8 @@ def read_sed(filepath, read_data=True, read_metadata=True, verbose=False):
     if read_data:
         data = pd.read_table(filepath, skiprows=i+1,
                              sep='\t')
-        data.columns = [SED_COLUMNS[col] for col in data.columns]
+        print(data.columns)
+        data.columns = [SED_COLUMNS[col] for col in data.columns] 
         data = data.set_index("wavelength")
         if "pct_reflect" in data:
             data["pct_reflect"] = data["pct_reflect"]/100

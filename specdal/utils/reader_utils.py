@@ -23,6 +23,8 @@ SED_COLUMNS = {
     "Tgt./Ref. %": "pct_reflect",
     "Irrad. (Ref.)": "ref_irradiance",
     "Irrad. (Target)": "tgt_irradiance",
+    "Norm. DN (Ref.)": "ref_count",
+    "Norm. DN (Target)": "tgt_count",
     "Reflect. %": "pct_reflect",
     "Reflect. [1.0]":"dec_reflect",
     "Chan.#":"channel_num",
