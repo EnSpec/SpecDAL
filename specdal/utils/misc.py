@@ -1,5 +1,5 @@
 import pandas as pd
-
+import warnings
 def get_monotonic_series(series):
     """return a list of series with monotonic index
     
@@ -37,5 +37,8 @@ def get_pct_reflect(dataframe):
         pct_reflect = dataframe["tgt_reflect"]/dataframe["ref_reflect"]
     if all(x in columns for x in ["tgt_irradiance", "ref_irradiance"]):
         pct_reflect = dataframe["tgt_irradiance"]/dataframe["ref_irradiance"]
-    pct_reflect.name = 'pct_reflect'
+    if pct_reflect is not None:
+        pct_reflect.name = 'pct_reflect'
+    else:
+        warnings.warn("Dataframe lacks columns to compute pct_reflect")
     return pct_reflect

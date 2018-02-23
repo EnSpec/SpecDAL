@@ -5,22 +5,70 @@ import pandas as pd
 import numpy as np
 from os.path import abspath, expanduser, splitext
 from collections import OrderedDict
+import json
 from .utils.reader_utils import *
 
 def read(filepath, read_data=True, read_metadata=True, verbose=False):
     """
     Calls the appropriate reader based on file extension
     """
-    SUPPORTED_READERS = {'.asd':read_asd , '.sig':read_sig , '.sed':read_sed }
+    SUPPORTED_READERS = {
+            '.asd':read_asd, 
+            '.sig':read_sig,
+            '.sed':read_sed,
+            '.pico':read_pico,
+            '.light':read_pico,
+            '.dark':read_pico,
+    }
     ext = splitext(filepath)[1]
     assert ext in SUPPORTED_READERS
     reader = SUPPORTED_READERS[ext]
     return reader(abspath(expanduser(filepath)), read_data,
                   read_metadata, verbose)
 
+def read_pico(filepath, read_data=True, read_metadata=True, verbose=False):
+    """
+    Read pico file for data and metadata
+    
+    Return
+    ------
+    2-tuple of (pd.DataFrame, OrderedDict) for data, metadata
+    """
+    data = None
+    metadata = None
+    raw_metadata = {}
+    with open(abspath(expanduser(filepath)), 'r') as f:
+        if verbose:
+            print('reading {}'.format(filepath))
+        raw_metadata = json.load(f)    
+
+    #TODO: How to handle multiple spectra per file?
+    #For now, just return the first one
+    spectrum = raw_metadata["Spectra"][0]
+
+    if read_data:
+        #Pico always in raw counts
+        counts = spectrum["Pixels"]
+        wavelength_coeffs = spectrum["Metadata"]["WavelengthCalibrationCoefficients"]
+        wavelengths = np.poly1d(wavelength_coeffs[::-1])(range(len(counts)))
+        #TODO: How to get ref data for pico?
+        data = pd.DataFrame(columns = ("wavelength","tgt_count"),data=
+                np.array((wavelengths,counts)).T)
+    if read_metadata:
+        metadata = OrderedDict()
+        metadata['file'] = f.name
+        metadata['instrument_type'] = 'PICO'
+        metadata['integration_time'] = spectrum["Metadata"]["IntegrationTime"]
+        metadata['gps_time_ref'] = spectrum.get("gps",{}).get("time",None)
+        metadata['gps_time_tgt'] = None
+        metadata['wavelength_range'] = None
+        if read_data:
+            metadata['wavelength_range'] = (data.index.min(), data.index.max())
+    return data, metadata
+
 def read_sed(filepath, read_data=True, read_metadata=True, verbose=False):
     """
-    Read asd file for data and metadata
+    Read sed file for data and metadata
     
     Return
     ------
@@ -42,7 +90,6 @@ def read_sed(filepath, read_data=True, read_metadata=True, verbose=False):
     if read_data:
         data = pd.read_table(filepath, skiprows=i+1,
                              sep='\t')
-        print(data.columns)
         data.columns = [SED_COLUMNS[col] for col in data.columns] 
         data = data.set_index("wavelength")
         if "pct_reflect" in data:
@@ -114,11 +161,13 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
             list(map(float, raw_metadata['integration'].split(', '))))
         ################################################################################
         metadata['measurement_type'] = raw_metadata['units'].split(', ')[0]
-        metadata['gps_time_tgt'] = None
-        metadata['gps_time_ref'] = None
-        if raw_metadata['gpstime'] != ',':
+        try:
             metadata['gps_time_ref'], metadata['gps_time_tgt'] = tuple(
                 map(float, raw_metadata['gpstime'].replace(' ', '').split(',')))
+        except:
+            metadata['gps_time_tgt'] = None
+            metadata['gps_time_ref'] = None
+
         metadata['wavelength_range'] = None
         if read_data:
             metadata['wavelength_range'] = (data.index.min(), data.index.max())
@@ -136,11 +185,10 @@ def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
     metadata = None
     if read_metadata:
         metadata = OrderedDict()
+    raw_metadata = {}
     with open(abspath(expanduser(filepath)), 'rb') as f:
         if verbose:
             print('reading {}'.format(filepath))
-        metadata['file'] = f.name
-        metadata['instrument_type'] = 'ASD'
         binconts = f.read()
         version = binconts[0:3].decode('utf-8')
         assert(version in ASD_VERSIONS) # TODO: define ASD_VERSIONS
@@ -182,6 +230,8 @@ def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
             data.index.name = 'wavelength'
             data.dropna(axis=1, how='all')
         if read_metadata:
+            metadata['file'] = f.name
+            metadata['instrument_type'] = 'ASD'
             # read splice wavelength
             splice1 = struct.unpack('f', binconts[444:(444 + 4)])[0]
             splice2 = struct.unpack('f', binconts[448:(448 + 4)])[0]
