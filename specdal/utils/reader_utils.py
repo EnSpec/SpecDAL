@@ -31,3 +31,4 @@ SED_COLUMNS = {
 }
 ASD_GPS_DATA = struct.Struct("= 5d 2b cl 2b 5B 2c")
 
+PICO_GPS_KEYS = "gps","GPS start","GPS"
