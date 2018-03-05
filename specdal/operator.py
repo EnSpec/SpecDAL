@@ -48,6 +48,14 @@ def stitch(series, method='mean'):
     
     if method == 'mean':
         return series.groupby(level=0, axis=0).mean()
+    elif method == 'max':
+        return series.groupby(level=0, axis=0).max()
+    elif method == 'min':
+        return series.groupby(level=0, axis=0).min()
+    elif method == 'median':
+        return series.groupby(level=0, axis=0).median()
+    else:
+        raise ValueError("Unsupported stitching method {}".format(method))
 
 ################################################################################
 # jump_correct: resolve jumps in non-overlapping wavelengths

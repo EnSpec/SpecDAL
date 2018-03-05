@@ -209,7 +209,7 @@ class Collection(object):
     ##################################################
     # reader
     def read(self, directory, measure_type='pct_reflect',
-             ext=[".asd", ".sed", ".sig"], recursive=False,
+             ext=[".asd", ".sed", ".sig",".pico",".light"], recursive=False,
              verbose=False):
         """
         read all files in a path matching extension

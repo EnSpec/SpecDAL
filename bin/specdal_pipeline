@@ -157,16 +157,19 @@ if args.group_by:
 
 # output individual spectra
 if not args.omit_individual:
-    print_if_verbose('Saving individual spectrum outputs...')
+    if not args.omit_figures:
+        print_if_verbose('Saving individual spectrum outputs...')
     indiv_datadir = os.path.join(datadir, 'indiv')
     indiv_figdir = os.path.join(figdir, 'indiv')
     os.mkdir(indiv_datadir)
     os.mkdir(indiv_figdir)
     for spectrum in c.spectra:
-        spectrum.to_csv(os.path.join(indiv_datadir, spectrum.name + '.csv'))
-        spectrum.plot(legend=False)
-        plt.savefig(os.path.join(indiv_figdir, spectrum.name + '.png'), bbox_inches='tight')
-        plt.close()
+        if not args.omit_data:
+            spectrum.to_csv(os.path.join(indiv_datadir, spectrum.name + '.csv'))
+        if not args.omit_figures:
+            spectrum.plot(legend=False)
+            plt.savefig(os.path.join(indiv_figdir, spectrum.name + '.png'), bbox_inches='tight')
+            plt.close()
 
 # output whole and group data
 if not args.omit_data:

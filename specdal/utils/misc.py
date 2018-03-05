@@ -29,14 +29,20 @@ def get_pct_reflect(dataframe):
     """
     columns = dataframe.columns.values
     pct_reflect = None
-    if all(x in columns for x in ["tgt_count", "ref_count"]):
+    #special case for piccolo
+    if all(x in columns for x in ["tgt_count","ref_count","tgt_count_dark",
+                "ref_count_dark"]):
+        pct_reflect = (dataframe["tgt_count"]-dataframe["tgt_count_dark"])/(
+                dataframe["ref_count"]-dataframe["ref_count_dark"])
+    elif all(x in columns for x in ["tgt_count", "ref_count"]):
         pct_reflect = dataframe["tgt_count"]/dataframe["ref_count"]
-    if all(x in columns for x in ["tgt_radiance", "ref_radiance"]):
+    elif all(x in columns for x in ["tgt_radiance", "ref_radiance"]):
         pct_reflect = dataframe["tgt_radiance"]/dataframe["ref_radiance"]
-    if all(x in columns for x in ["tgt_reflect", "ref_reflect"]):
+    elif all(x in columns for x in ["tgt_reflect", "ref_reflect"]):
         pct_reflect = dataframe["tgt_reflect"]/dataframe["ref_reflect"]
-    if all(x in columns for x in ["tgt_irradiance", "ref_irradiance"]):
+    elif all(x in columns for x in ["tgt_irradiance", "ref_irradiance"]):
         pct_reflect = dataframe["tgt_irradiance"]/dataframe["ref_irradiance"]
+
     if pct_reflect is not None:
         pct_reflect.name = 'pct_reflect'
     else:
