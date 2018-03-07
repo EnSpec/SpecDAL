@@ -1,0 +1,44 @@
+#set of functions to automatically identify bad spectra in a collection
+#and separate them from the rest
+
+from .collection import df_to_collection
+
+def split_good_bad(collection,is_good):
+    """
+    Given: A collection and some error metric
+    Return: 2 collections, one of the flagged-good data, one of the flagged-bad
+    data
+    """
+    good_spectra = collection.data.T[is_good].T
+    bad_spectra = collection.data.T[~is_good].T
+
+    good_col = df_to_collection(collection.name+'_good',good_spectra)
+    bad_col = df_to_collection(collection.name+'_bad',bad_spectra)
+
+    return good_col,bad_col
+
+def filter_std(collection,wavelength0,wavelength1,std_thresh,group='mean'):
+    """Filter the spectra from collection who have a mean std that is greater
+    than 3 times the mean std between wavelength0 and wavelength1
+    group can be mean, median, max, min. min <-> all, max <-> any
+    """
+    #extract the relevant wavelength range
+    data = collection.data.loc[wavelength0:wavelength1]
+    mean = data.mean(axis=1)
+    std = data.std(axis=1)
+    #number of standard deviations from mean at each wavelength
+    n_std = data.sub(mean,axis=0).div(std,axis=0).abs()
+
+    if group == 'mean':
+        good = n_std.mean() < std_thresh
+    if group == 'median':
+        good = n_std.median() < std_thresh
+    if group == 'min':
+        good = n_std.min() < std_thresh
+    if group == 'max':
+        good = n_std.min() < std_thresh
+    #TODO: work around transposing
+    return split_good_bad(collection,is_good)
+
+
+
