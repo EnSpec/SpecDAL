@@ -9,17 +9,17 @@ def split_good_bad(collection,is_good):
     Return: 2 collections, one of the flagged-good data, one of the flagged-bad
     data
     """
-    good_spectra = collection.data.T[is_good].T
-    bad_spectra = collection.data.T[~is_good].T
+    good_spectra = collection.data.T[is_good]
+    bad_spectra = collection.data.T[~is_good]
 
-    good_col = df_to_collection(collection.name+'_good',good_spectra)
-    bad_col = df_to_collection(collection.name+'_bad',bad_spectra)
+    good_col = df_to_collection(good_spectra,name=collection.name)
+    bad_col = df_to_collection(bad_spectra,name=collection.name+'_filtered')
 
     return good_col,bad_col
 
 def filter_std(collection,wavelength0,wavelength1,std_thresh,group='mean'):
     """Filter the spectra from collection who have a mean std that is greater
-    than 3 times the mean std between wavelength0 and wavelength1
+    than std_thresh times the mean std between wavelength0 and wavelength1
     group can be mean, median, max, min. min <-> all, max <-> any
     """
     #extract the relevant wavelength range
@@ -38,7 +38,25 @@ def filter_std(collection,wavelength0,wavelength1,std_thresh,group='mean'):
     if group == 'max':
         good = n_std.min() < std_thresh
     #TODO: work around transposing
-    return split_good_bad(collection,is_good)
+    return split_good_bad(collection,good)
 
-
+def filter_threshold(collection,wavelength0,wavelength1,low,high,group='mean'):
+    """Filter the spectra from collection that have a value outside of
+    (low,high). 
+    """
+    data = collection.data.loc[wavelength0:wavelength1]
+    if group == 'mean':
+        mean = data.mean(axis=0)
+        good = (mean < high) & (mean > low)
+    if group == 'median':
+        med = data.median(axis=0)
+        good = (med < high) & (med > low)
+    if group == 'min':
+        _min = data.min(axis=0)
+        good = (_min < high) & (_min > low)
+    if group == 'max':
+        _max = data.max(axis=0)
+        good = (_max < high) & (_max > low)
+    #TODO: work around transposing
+    return split_good_bad(collection,good)
 

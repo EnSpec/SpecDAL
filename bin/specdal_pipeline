@@ -11,6 +11,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 sys.path.insert(0, os.path.abspath('..'))
 from specdal.collection import Collection, proximal_join
+from specdal import errors
 import shutil
 
 parser = argparse.ArgumentParser(description='SpecDAL Pipeline',
@@ -73,6 +74,22 @@ parser.add_argument('-gmedian', '--group_median', dest='aggr', action='append_co
                     const='median', help='calculate group median and append to group figures')
 parser.add_argument('-gstd', '--group_std', dest='aggr', action='append_const',
                     const='std', help='calculate group standard deviation and append to group figures')
+
+#error filter
+parser.add_argument('-fstd','--filter_std',metavar='n_std', type=float, 
+                    help='remove spectra from dataset with a pct_reflect'
+                    ' over n_std away from the mean')
+
+parser.add_argument('-fthresh','--filter_threshold',metavar=('low','high'),type=float,
+                    nargs=2,
+                    help='remove spectra from the dataset with a pct_reflect outside (low,high)')
+parser.add_argument('-fr','--filter_range',type=int, nargs=2, default=[750,1250],
+                    metavar=('wl1','wl2'),
+                    help='only apply filter from wl1 to wl2 (in nm)')
+
+parser.add_argument('-fg','--filter_group',metavar='method',
+                    choices=['mean', 'median', 'min', 'max'],default='mean',
+                    help='How to combine the wavelengths selected by --filter_group.')
 # misc
 parser.add_argument('-q', '--quiet', default=False, action='store_true')
 parser.add_argument('-f', '--force', default=False, action='store_true',
@@ -147,7 +164,31 @@ if args.proximal_reference:
     print_if_verbose('Joining proximal data...')
     c = proximal_join(c_base, c, on='gps_time_tgt', direction='nearest')
 
-groups = None
+
+#filter bad
+if args.filter_std or args.filter_threshold:
+    print_if_verbose('Filtering...',end=' ')
+    wl1,wl2 = args.filter_range
+    #TODO: Nicer way to select from various filter methods
+    #or a way to chain filtering methods
+    if args.filter_std:
+        c, c_bad = errors.filter_std(c, wl1, wl2, args.filter_std,
+                group = args.filter_group)
+    elif args.filter_threshold:
+        low, high = args.filter_threshold
+        c, c_bad = errors.filter_threshold(c, wl1, wl2, low,high,
+                group = args.filter_group)
+
+    print_if_verbose('Rejected {} spectra'.format(len(c_bad.spectra)))
+    if len(c_bad.spectra):
+        if not args.omit_figures:
+            c_bad.plot(legend=False)
+            plt.savefig(os.path.join(figdir, c.name + "_rejected.png"),  bbox_inches="tight")
+            plt.close()
+        if not args.omit_data:
+            c_bad.to_csv(os.path.join(datadir, c.name + '_rejected.csv'))
+
+
 # group by
 groups = None
 if args.group_by:
