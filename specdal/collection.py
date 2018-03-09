@@ -149,7 +149,7 @@ class Collection(object):
             # typically from duplicate index due to overlapping wavelengths
             if not all([s.stitched for s in self.spectra]):
                 warnings.warn('ValueError: Try after stitching the overlaps')
-            raise err
+            return None
     def append(self, spectrum):
         """
         insert spectrum to the collection

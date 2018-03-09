@@ -10,7 +10,8 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 sys.path.insert(0, os.path.abspath('..'))
-from specdal.collection import Collection, proximal_join
+from specdal.collection import Collection, proximal_join, df_to_collection
+import pandas as pd
 from specdal import errors
 import shutil
 
@@ -76,20 +77,26 @@ parser.add_argument('-gstd', '--group_std', dest='aggr', action='append_const',
                     const='std', help='calculate group standard deviation and append to group figures')
 
 #error filter
-parser.add_argument('-fstd','--filter_std',metavar='n_std', type=float, 
-                    help='remove spectra from dataset with a pct_reflect'
-                    ' over n_std away from the mean')
+parser.add_argument('-fstd','--filter_std',metavar='wl0 wl1 n_std', nargs="+",type=float, 
+                    help='Remove spectra from dataset with a pct_reflect'
+                    ' over n_std\naway from the mean between wavelengths wl0 and wl1.'
+                    '\nCan specify multiple sets of wavenumber ranges and thresholds')
 
-parser.add_argument('-fthresh','--filter_threshold',metavar=('low','high'),type=float,
-                    nargs=2,
-                    help='remove spectra from the dataset with a pct_reflect outside (low,high)')
-parser.add_argument('-fr','--filter_range',type=int, nargs=2, default=[750,1250],
-                    metavar=('wl1','wl2'),
-                    help='only apply filter from wl1 to wl2 (in nm)')
+parser.add_argument('-fthresh','--filter_threshold',metavar="wl0 wl1 LO HI",type=float,
+                    nargs='+',
+                    help='Remove spectra from the dataset with a pct_reflect outside\n(LO,HI)'
+                    'in the wavenumber range wl0 wl1. Can specify multiple\nsets of wavenumber'
+                    ' ranges and thresholds')
+
+parser.add_argument('-fwhite','--filter_white',action='store_true',
+                    help='Remove white reference spectra from dataset')
 
 parser.add_argument('-fg','--filter_group',metavar='method',
                     choices=['mean', 'median', 'min', 'max'],default='mean',
                     help='How to combine the wavelengths selected by --filter_group.')
+
+parser.add_argument('-yl','--ylim',metavar=('ymin','ymax'),type=float,
+                    nargs=2,help='Force the y axis of plots to display between ymin and ymax')
 # misc
 parser.add_argument('-q', '--quiet', default=False, action='store_true')
 parser.add_argument('-f', '--force', default=False, action='store_true',
@@ -166,23 +173,47 @@ if args.proximal_reference:
 
 
 #filter bad
-if args.filter_std or args.filter_threshold:
+if args.filter_std or args.filter_threshold or args.filter_white:
+    c_bads = []
     print_if_verbose('Filtering...',end=' ')
-    wl1,wl2 = args.filter_range
     #TODO: Nicer way to select from various filter methods
     #or a way to chain filtering methods
-    if args.filter_std:
-        c, c_bad = errors.filter_std(c, wl1, wl2, args.filter_std,
-                group = args.filter_group)
-    elif args.filter_threshold:
-        low, high = args.filter_threshold
-        c, c_bad = errors.filter_threshold(c, wl1, wl2, low,high,
-                group = args.filter_group)
+    if args.filter_white:
+        c, c_bad = errors.filter_white(c)
+        if not (c_bad.data is None):
+            c_bads.append(c_bad.data)
 
+    if args.filter_std:
+        if len(args.filter_std)%3 != 0:
+            print("Incorrect parameters for --filter_std. See specdal_pipeline --help")
+            sys.exit(1)
+
+        for i in range(0,len(args.filter_std),3):
+            wl1,wl2,std_thresh = args.filter_std[i:i+3]
+            c, c_bad = errors.filter_std(c, wl1, wl2, std_thresh,
+                    group = args.filter_group)
+            if not (c_bad.data is None):
+                c_bads.append(c_bad.data)
+
+    if args.filter_threshold:
+        if len(args.filter_std)%4 != 0:
+            print("Incorrect parameters for --filter_threshold. See specdal_pipeline --help")
+            sys.exit(1)
+        for i in range(0,len(args.filter_std),4):
+            wl1,wl2,low,high = args.filter_std[i:i+4]
+            c, c_bad = errors.filter_std(c, wl1, wl2, low, high,
+                    group = args.filter_group)
+            if not (c_bad.data is None):
+                c_bads.append(c_bad.data)
+
+
+    c_bad = df_to_collection(pd.concat(c_bads,axis=1).T,name=c.name+'_rejected')
     print_if_verbose('Rejected {} spectra'.format(len(c_bad.spectra)))
     if len(c_bad.spectra):
         if not args.omit_figures:
             c_bad.plot(legend=False)
+            if args.ylim:
+                plt.ylim(*args.ylim)
             plt.savefig(os.path.join(figdir, c.name + "_rejected.png"),  bbox_inches="tight")
             plt.close()
         if not args.omit_data:
@@ -209,6 +240,8 @@ if not args.omit_individual:
             spectrum.to_csv(os.path.join(indiv_datadir, spectrum.name + '.csv'))
         if not args.omit_figures:
             spectrum.plot(legend=False)
+            if args.ylim:
+                plt.ylim(*args.ylim)
             plt.savefig(os.path.join(indiv_figdir, spectrum.name + '.png'), bbox_inches='tight')
             plt.close()
 
@@ -232,6 +265,8 @@ for aggr in args.aggr:
     print_if_verbose('Saving group {} outputs...'.format(aggr))
     aggr_coll.to_csv(os.path.join(datadir, aggr_coll.name + '.csv'))
     aggr_coll.plot(legend=False)
+    if args.ylim:
+        plt.ylim(*args.ylim)
     plt.savefig(os.path.join(figdir, aggr_coll.name + '.png'), bbox_inches='tight')
     plt.close()
 
@@ -239,10 +274,14 @@ for aggr in args.aggr:
 if not args.omit_figures:
     print_if_verbose('Saving entire and grouped figure outputs...')
     c.plot(legend=False)
+    if args.ylim:
+        plt.ylim(*args.ylim)
     plt.savefig(os.path.join(figdir, c.name + ".png"),  bbox_inches="tight")
     plt.close()
     if groups:
         for group_id, group_coll in groups.items():
             group_coll.plot(legend=False)
+            if args.ylim:
+                plt.ylim(*args.ylim)
             plt.savefig(os.path.join(figdir, group_id + ".png"),  bbox_inches="tight")
             plt.close()
