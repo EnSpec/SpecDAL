@@ -173,9 +173,10 @@ if args.proximal_reference:
 
 
 #filter bad
-if args.filter_std or args.filter_threshold or args.filter_white:
+def do_filters(c):
+    if args.filter_std or args.filter_threshold or args.filter_white:
+        print_if_verbose('Filtering...',end=' ')
     c_bads = []
-    print_if_verbose('Filtering...',end=' ')
     #TODO: Nicer way to select from various filter methods
     #or a way to chain filtering methods
     if args.filter_white:
@@ -183,7 +184,7 @@ if args.filter_std or args.filter_threshold or args.filter_white:
         if not (c_bad.data is None):
             c_bads.append(c_bad.data)
 
-    if args.filter_std:
+    if args.filter_std and c.data is not None:
         if len(args.filter_std)%3 != 0:
             print("Incorrect parameters for --filter_std. See specdal_pipeline --help")
             sys.exit(1)
@@ -195,37 +196,49 @@ if args.filter_std or args.filter_threshold or args.filter_white:
             if not (c_bad.data is None):
                 c_bads.append(c_bad.data)
 
-    if args.filter_threshold:
-        if len(args.filter_std)%4 != 0:
+    if args.filter_threshold and c.data is not None:
+        if len(args.filter_threshold)%4 != 0:
             print("Incorrect parameters for --filter_threshold. See specdal_pipeline --help")
             sys.exit(1)
-        for i in range(0,len(args.filter_std),4):
-            wl1,wl2,low,high = args.filter_std[i:i+4]
-            c, c_bad = errors.filter_std(c, wl1, wl2, low, high,
+        for i in range(0,len(args.filter_threshold),4):
+            wl1,wl2,low,high = args.filter_threshold[i:i+4]
+            c, c_bad = errors.filter_threshold(c, wl1, wl2, low, high,
                     group = args.filter_group)
             if not (c_bad.data is None):
                 c_bads.append(c_bad.data)
 
 
-    c_bad = df_to_collection(pd.concat(c_bads,axis=1).T,name=c.name+'_rejected')
-    print_if_verbose('Rejected {} spectra'.format(len(c_bad.spectra)))
-    if len(c_bad.spectra):
-        if not args.omit_figures:
-            c_bad.plot(legend=False)
-            if args.ylim:
-                plt.ylim(*args.ylim)
-            plt.savefig(os.path.join(figdir, c.name + "_rejected.png"),  bbox_inches="tight")
-            plt.close()
-        if not args.omit_data:
-            c_bad.to_csv(os.path.join(datadir, c.name + '_rejected.csv'))
+    if len(c_bads) > 0:
+        c_bad = df_to_collection(pd.concat(c_bads,axis=1).T,name=c.name+'_rejected')
+        print_if_verbose('Rejected {} spectra'.format(len(c_bad.spectra)),end=' ')
+        if len(c_bad.spectra):
+            if not args.omit_figures:
+                c_bad.plot(legend=False)
+                if args.ylim:
+                    plt.ylim(*args.ylim)
+                plt.savefig(os.path.join(figdir, c.name + "_rejected.png"),  bbox_inches="tight")
+                plt.close()
+            if not args.omit_data:
+                c_bad.to_csv(os.path.join(datadir, c.name + '_rejected.csv'))
+    if args.filter_std or args.filter_threshold or args.filter_white:
+        print_if_verbose('')
+    return c
 
-
+do_filters(c)
 # group by
 groups = None
 if args.group_by:
     print_if_verbose('Grouping...')
     groups = c.groupby(separator=args.group_by_separator,
                        indices=args.group_by_indices)
+    bad_keys = []
+    for key in groups:
+        groups[key] = do_filters(groups[key])
+        #reject the groups with no good data
+        if groups[key].data is None:
+            bad_keys.append(key)
+    for key in bad_keys:
+        groups.pop(key)
 
 # output individual spectra
 if not args.omit_individual:
