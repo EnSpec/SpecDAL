@@ -95,6 +95,11 @@ parser.add_argument('-fg','--filter_group',metavar='method',
                     choices=['mean', 'median', 'min', 'max'],default='mean',
                     help='How to combine the wavelengths selected by --filter_group.')
 
+parser.add_argument('-fo','--filter_on',metavar='set',
+                    choices=['collection','group','both'],default='collection',
+                    help='What subset of the data to apply filter on' 
+                    ' (collection, group or both)')
+
 parser.add_argument('-yl','--ylim',metavar=('ymin','ymax'),type=float,
                     nargs=2,help='Force the y axis of plots to display between ymin and ymax')
 # misc
@@ -224,21 +229,23 @@ def do_filters(c):
         print_if_verbose('')
     return c
 
-do_filters(c)
+if args.filter_on in ('collection','both'):
+    c = do_filters(c)
 # group by
 groups = None
 if args.group_by:
     print_if_verbose('Grouping...')
     groups = c.groupby(separator=args.group_by_separator,
                        indices=args.group_by_indices)
-    bad_keys = []
-    for key in groups:
-        groups[key] = do_filters(groups[key])
-        #reject the groups with no good data
-        if groups[key].data is None:
-            bad_keys.append(key)
-    for key in bad_keys:
-        groups.pop(key)
+    if args.filter_on in ('group','both'):
+        bad_keys = []
+        for key in groups:
+            groups[key] = do_filters(groups[key])
+            #reject the groups with no good data
+            if groups[key].data is None:
+                bad_keys.append(key)
+        for key in bad_keys:
+            groups.pop(key)
 
 # output individual spectra
 if not args.omit_individual:
