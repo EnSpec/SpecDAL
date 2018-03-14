@@ -53,7 +53,9 @@ walkthrough, see
 
 Installation from Source
 ========================
-SpecDAL can also be installed from source.  Open a terminal and run the command
+SpecDAL can also be installed from source.  Open a terminal and run the command:
+
 ``git clone https://github.com/EnSpec/SpecDAL.git && pip install SpecDAL/`` 
+
 The SpecDAL python package and ``specdal_pipeline`` command-line tool will be
 installed on your system (see ``specdal_pipeline --help`` for usage).
