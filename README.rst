@@ -50,3 +50,10 @@ Installation
 SpecDAL can be installed from PyPI using pip. For a more detailed
 walkthrough, see
 `http://specdal-test.readthedocs.io/en/latest/installation.html`
+
+Installation from Source
+========================
+SpecDAL can also be installed from source.  Open a terminal and run the command
+``git clone https://github.com/EnSpec/SpecDAL.git && pip install SpecDAL/`` 
+The SpecDAL python package and ``specdal_pipeline`` command-line tool will be
+installed on your system (see ``specdal_pipeline --help`` for usage).
