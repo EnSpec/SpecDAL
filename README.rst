@@ -53,6 +53,9 @@ walkthrough, see
 
 Installation from Source
 ========================
+**Warning:** This method of installation will override any other versions of SpecDAL
+in your current environment. A virtual environment can be used to preserve other installations.
+
 SpecDAL can also be installed from source.  Open a terminal and run the command:
 
 ``git clone https://github.com/EnSpec/SpecDAL.git && pip install SpecDAL/`` 
