@@ -77,11 +77,11 @@ in directory ``/path/to/spectra/`` and store the results in ``specdal_output/``:
 
 To only output whole-dataset images and files:
 
-``specdal_pipeline  -o -oi specdal_output /path/to/spectra/``
+``specdal_pipeline  -oi -o specdal_output /path/to/spectra/``
 
 To only output images, with no data files:
 
-``specdal_pipeline  -o -od specdal_output /path/to/spectra/``
+``specdal_pipeline  -od -o specdal_output /path/to/spectra/``
 
 
 To group input files by the first 3 underscore-separated components 
