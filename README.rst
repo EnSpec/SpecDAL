@@ -53,6 +53,7 @@ walkthrough, see
 
 Installation from Source
 ========================
+
 **Warning:** This method of installation will override any other versions of SpecDAL
 in your current environment. A virtual environment can be used to preserve other installations.
 
@@ -62,3 +63,54 @@ SpecDAL can also be installed from source.  Open a terminal and run the command:
 
 The SpecDAL python package and ``specdal_pipeline`` command-line tool will be
 installed on your system (see ``specdal_pipeline --help`` for usage).
+
+
+Example Usage
+=============
+
+For a description of all command line arguments: ``specdal_pipeline --help``.
+
+To produce an individual plot and textfile for every spectrum file 
+in directory ``/path/to/spectra/`` and store the results in ``specdal_output/``:
+
+``specdal_pipeline  -o specdal_output /path/to/spectra/``
+
+To only output whole-dataset images and files:
+
+``specdal_pipeline  -o -oi specdal_output /path/to/spectra/``
+
+To only output images, with no data files:
+
+``specdal_pipeline  -o -od specdal_output /path/to/spectra/``
+
+
+To group input files by the first 3 underscore-separated components 
+of their filename (such that ``foo_bar_baz_001.asd`` and 
+``foo_bar_baz_002.asd`` will appear in one group, and
+``foo_bar_qux_001.asd`` in another):
+
+``specdal_pipeline -g -gi 0 1 2 -- /path/to/spectra/``
+
+To also output the mean and median of every group of spectra:
+
+``specdal_pipeline -g -gi 0 1 2  -gmean -gmedian /path/to/spectra/``
+
+To remove all white reference spectra from the output dataset (leaves input files intact):
+
+``specdal_pipeline --filter_white /path/to/spectra/``
+
+To remove all white reference spectra from the dataset, as well as spectra
+with a 750-1200 nm reflectance that is greater than 1 standard deviation from the mean,
+or with a 500-600 nm reflectance that is greater than 2 standard devations from the mean:
+
+``specdal_pipeline --filter_white --filter_std 750 1200 1 500 600 2  -- /path/to/spectra/``
+
+To perform the filtering above, and then group the remaining spectra by filename:
+
+``specdal_pipeline --filter_white --filter_std 750 1200 1 500 600 2 
+-g -gi 0 1 2 /path/to/spectra/``
+
+To group the spectra by filename, and then perform filtering on each group:
+
+``specdal_pipeline --filter_white --filter_std 750 1200 1 500 600 2 
+-g -gi 0 1 2  --filter_on group /path/to/spectra/``
