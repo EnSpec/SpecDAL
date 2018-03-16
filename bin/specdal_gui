@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+
+import specdal.gui.viewer as viewer
+viewer.main()

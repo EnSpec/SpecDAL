@@ -17,7 +17,7 @@ import os
 # key functions for forming groups
 def separator_keyfun(spectrum, separator, indices):
     elements = spectrum.name.split(separator)
-    return separator.join([elements[i] for i in indices])
+    return separator.join([elements[i] for i in indices if i<len(elements)])
 
 def separator_with_filler_keyfun(spectrum, separator, indices, filler='.'):
     elements = spectrum.name.split(separator)
@@ -275,6 +275,7 @@ class Collection(object):
                               spectra=[copy.deepcopy(s) for s in g_spectra])
             result[coll.name] = coll
         return result
+
     def plot(self, *args, **kwargs):
         '''
         '''

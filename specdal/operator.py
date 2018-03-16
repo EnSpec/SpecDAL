@@ -34,6 +34,31 @@ def interpolate(series, spacing=1, method='slinear'):
         seqs.append(seq.loc[int_index])
     return pd.concat(seqs).dropna()
 
+def _stitch_region(series,wnum,idx,method='mean'):
+    #the radiances to the left of the negative step
+    left_idx = wnum.loc[:idx-1][wnum.loc[:idx-1]>wnum[idx]].index
+    #the radiances to the right of the negative step
+    right_idx = wnum.loc[idx:][wnum.loc[idx:]<wnum[idx-1]].index
+    #sort the wavenumbers on both sides of the jump
+    mixed_wnum = sorted(series.iloc[left_idx[0]:right_idx[-1]].index)
+    #interpolate the radiances on the left side to the full range
+    left_rads = series.iloc[left_idx].reindex(mixed_wnum).interpolate(
+            limit_direction='both')
+    #interpolate the radiances on the right side to the full range
+    right_rads = series.iloc[right_idx].reindex(mixed_wnum).interpolate(
+            limit_direction='both')
+    #apply the stitching method
+    if method == 'mean':
+        merged = pd.concat([left_rads,right_rads],axis=1).mean(axis=1)
+    elif method == 'max':
+        merged = pd.concat([left_rads,right_rads],axis=1).max(axis=1)
+    elif method == 'min':
+        merged =  pd.concat([left_rads,right_rads],axis=1).min(axis=1)
+    else:
+        raise NotImplementedError
+    return pd.concat([series.iloc[0:left_idx[0]],merged,
+        series.iloc[right_idx[-1]:]])
+
 ################################################################################
 # stitch: resolve overlaps in wavelengths
 def stitch(series, method='mean'):
@@ -45,18 +70,14 @@ def stitch(series, method='mean'):
     series: pandas.Series object
     
     """
+    #find indices of overlap
+    wnum = pd.Series(series.index)
+    wnum_step = wnum.diff()
+    neg_idx = wnum.index[wnum_step < 0]
+    for idx in neg_idx:
+        series = _stitch_region(series,wnum,idx,method)
     
-    if method == 'mean':
-        return series.groupby(level=0, axis=0).mean()
-    elif method == 'max':
-        return series.groupby(level=0, axis=0).max()
-    elif method == 'min':
-        return series.groupby(level=0, axis=0).min()
-    elif method == 'median':
-        return series.groupby(level=0, axis=0).median()
-    else:
-        raise ValueError("Unsupported stitching method {}".format(method))
-
+    return series
 ################################################################################
 # jump_correct: resolve jumps in non-overlapping wavelengths
 def jump_correct(series, splices, reference, method="additive"):
