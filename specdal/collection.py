@@ -237,7 +237,7 @@ class Collection(object):
 	'''
         for spectrum in self.spectra:
             spectrum.interpolate(spacing, method)
-    def stitch(self, method='mean'):
+    def stitch(self, method='max'):
         '''
 	'''
         for spectrum in self.spectra:

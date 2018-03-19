@@ -34,13 +34,13 @@ def interpolate(series, spacing=1, method='slinear'):
         seqs.append(seq.loc[int_index])
     return pd.concat(seqs).dropna()
 
-def _stitch_region(series,wnum,idx,method='mean'):
+def _stitch_region(series,wnum,idx,method='max'):
     #the radiances to the left of the negative step
     left_idx = wnum.loc[:idx-1][wnum.loc[:idx-1]>wnum[idx]].index
     #the radiances to the right of the negative step
     right_idx = wnum.loc[idx:][wnum.loc[idx:]<wnum[idx-1]].index
     #sort the wavenumbers on both sides of the jump
-    mixed_wnum = sorted(series.iloc[left_idx[0]:right_idx[-1]].index)
+    mixed_wnum = sorted(set(series.iloc[left_idx[0]:right_idx[-1]].index))
     #interpolate the radiances on the left side to the full range
     left_rads = series.iloc[left_idx].reindex(mixed_wnum).interpolate(
             limit_direction='both')
@@ -56,12 +56,14 @@ def _stitch_region(series,wnum,idx,method='mean'):
         merged =  pd.concat([left_rads,right_rads],axis=1).min(axis=1)
     else:
         raise NotImplementedError
-    return pd.concat([series.iloc[0:left_idx[0]],merged,
-        series.iloc[right_idx[-1]:]])
+
+    assert (pd.Series(merged.index).diff()[1:]>0).all()
+    return pd.concat([series.iloc[0:left_idx[0]-1],merged,
+        series.iloc[right_idx[-1]+1:]])
 
 ################################################################################
 # stitch: resolve overlaps in wavelengths
-def stitch(series, method='mean'):
+def stitch(series, method='max'):
     """
     Stitch the regions with overlapping wavelength
     
@@ -71,12 +73,14 @@ def stitch(series, method='mean'):
     
     """
     #find indices of overlap
-    wnum = pd.Series(series.index)
-    wnum_step = wnum.diff()
-    neg_idx = wnum.index[wnum_step < 0]
-    for idx in neg_idx:
-        series = _stitch_region(series,wnum,idx,method)
+    while (pd.Series(series.index).diff()[1:]<=0).any():
+        wnum = pd.Series(series.index)
+        wnum_step = wnum.diff()
+        neg_idx = wnum.index[wnum_step < 0]
+        print(neg_idx)
+        series = _stitch_region(series,wnum,neg_idx[0],method)
     
+
     return series
 ################################################################################
 # jump_correct: resolve jumps in non-overlapping wavelengths
