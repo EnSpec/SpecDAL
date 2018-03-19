@@ -77,7 +77,6 @@ def stitch(series, method='max'):
         wnum = pd.Series(series.index)
         wnum_step = wnum.diff()
         neg_idx = wnum.index[wnum_step < 0]
-        print(neg_idx)
         series = _stitch_region(series,wnum,neg_idx[0],method)
     
 
