@@ -3,10 +3,9 @@
 # pandas.Series.
 import pandas as pd
 import numpy as np
-import specdal.operator as op
+import specdal.operators as op
 from collections import OrderedDict
-from .reader import read
-from .utils.misc import get_pct_reflect
+from specdal.readers import read
 import os
 
 class Spectrum(object):
@@ -76,7 +75,7 @@ class Spectrum(object):
         data, meta = read(filepath, verbose=verbose)
         self.metadata = meta
         if measure_type == 'pct_reflect' and 'pct_reflect' not in data:
-            self.measurement = get_pct_reflect(data)
+            self.measurement = self.get_pct_reflect(data)
             return
         assert measure_type in data # TODO: handle this
         self.measurement = data[measure_type]
@@ -97,6 +96,35 @@ class Spectrum(object):
         '''
         self.measurement = op.jump_correct(self.measurement, splices, reference, method)
         self.jump_corrected = True
+    def get_pct_reflect(self,dataframe):
+        """
+        Helper function to calculate pct_reflect from other columns
+        
+        Returns
+        -------
+        pd.Series object for pct_reflect
+        """
+        columns = dataframe.columns.values
+        pct_reflect = None
+        #special case for piccolo
+        if all(x in columns for x in ["tgt_count","ref_count","tgt_count_dark",
+                    "ref_count_dark"]):
+            pct_reflect = (dataframe["tgt_count"]-dataframe["tgt_count_dark"])/(
+                    dataframe["ref_count"]-dataframe["ref_count_dark"])
+        elif all(x in columns for x in ["tgt_count", "ref_count"]):
+            pct_reflect = dataframe["tgt_count"]/dataframe["ref_count"]
+        elif all(x in columns for x in ["tgt_radiance", "ref_radiance"]):
+            pct_reflect = dataframe["tgt_radiance"]/dataframe["ref_radiance"]
+        elif all(x in columns for x in ["tgt_reflect", "ref_reflect"]):
+            pct_reflect = dataframe["tgt_reflect"]/dataframe["ref_reflect"]
+        elif all(x in columns for x in ["tgt_irradiance", "ref_irradiance"]):
+            pct_reflect = dataframe["tgt_irradiance"]/dataframe["ref_irradiance"]
+
+        if pct_reflect is not None:
+            pct_reflect.name = 'pct_reflect'
+        else:
+            warnings.warn("Dataframe lacks columns to compute pct_reflect")
+        return pct_reflect
     ##################################################
     # wrapper around plot function
     def plot(self, *args, **kwargs):

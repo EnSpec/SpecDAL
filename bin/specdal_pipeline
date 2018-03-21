@@ -10,9 +10,9 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 sys.path.insert(0, os.path.abspath('..'))
-from specdal.collection import Collection, proximal_join, df_to_collection
+from specdal.containers.collection import Collection, proximal_join, df_to_collection
 import pandas as pd
-from specdal import errors
+from specdal import filters
 import shutil
 
 parser = argparse.ArgumentParser(description='SpecDAL Pipeline',
@@ -185,7 +185,7 @@ def do_filters(c):
     #TODO: Nicer way to select from various filter methods
     #or a way to chain filtering methods
     if args.filter_white:
-        c, c_bad = errors.filter_white(c)
+        c, c_bad = filters.filter_white(c)
         if not (c_bad.data is None):
             c_bads.append(c_bad.data)
 
@@ -196,7 +196,7 @@ def do_filters(c):
 
         for i in range(0,len(args.filter_std),3):
             wl1,wl2,std_thresh = args.filter_std[i:i+3]
-            c, c_bad = errors.filter_std(c, wl1, wl2, std_thresh,
+            c, c_bad = filters.filter_std(c, wl1, wl2, std_thresh,
                     group = args.filter_group)
             if not (c_bad.data is None):
                 c_bads.append(c_bad.data)
@@ -207,7 +207,7 @@ def do_filters(c):
             sys.exit(1)
         for i in range(0,len(args.filter_threshold),4):
             wl1,wl2,low,high = args.filter_threshold[i:i+4]
-            c, c_bad = errors.filter_threshold(c, wl1, wl2, low, high,
+            c, c_bad = filters.filter_threshold(c, wl1, wl2, low, high,
                     group = args.filter_group)
             if not (c_bad.data is None):
                 c_bads.append(c_bad.data)

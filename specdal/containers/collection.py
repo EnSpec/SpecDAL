@@ -5,9 +5,9 @@ import pandas as pd
 import numpy as np
 from collections import OrderedDict, defaultdict
 from .spectrum import Spectrum
-import specdal.operator as op
+import specdal.operators as op
 from itertools import groupby
-from .reader import read
+from specdal.readers import read
 import copy
 import warnings
 from os.path import abspath, expanduser, splitext
