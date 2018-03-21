@@ -5,3 +5,4 @@ __pycache__*
 /build/
 /*.egg-info
 *.ipynb_checkpoints*
+Makefile
