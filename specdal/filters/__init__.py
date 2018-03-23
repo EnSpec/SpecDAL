@@ -6,3 +6,4 @@ __all__ = [ basename(f)[:-3] for f in modules if isfile(f) and not f.endswith('_
 from .filter_std import filter_std
 from .filter_threshold import filter_threshold
 from .filter_white import filter_white
+from .is_monotonic import is_monotonic

@@ -152,16 +152,18 @@ if args.proximal_reference:
     c_base = Collection(name=args.prefix + '_base')
     c_base.read(directory=args.proximal_reference)
 
-if args.interpolate:
-    print_if_verbose('interpolating...')
-    c.interpolate(spacing=args.interpolate_spacing, method=args.interpolate)
-    if args.proximal_reference:
-        c_base.interpolate(spacing=args.interpolate_spacing, method=args.interpolate)
 if args.stitch:
     print_if_verbose('Stitching...')
     c.stitch(method=args.stitch)
     if args.proximal_reference:
         c_base.stitch(method=args.stitch)
+
+if args.interpolate:
+    print_if_verbose('interpolating...')
+    c.interpolate(spacing=args.interpolate_spacing, method=args.interpolate)
+    if args.proximal_reference:
+        c_base.interpolate(spacing=args.interpolate_spacing, method=args.interpolate)
+
 if args.jump_correct:
     print_if_verbose('Jump correcting...')
     c.jump_correct(splices=args.jump_correct_splices,
@@ -181,6 +183,9 @@ if args.proximal_reference:
 def do_filters(c):
     if args.filter_std or args.filter_threshold or args.filter_white:
         print_if_verbose('Filtering...',end=' ')
+        if not filters.is_monotonic(c):
+            print("ERROR: Attempting to filter unstitched spectra. See specdal_pipeline --help")
+            sys.exit(1)
     c_bads = []
     #TODO: Nicer way to select from various filter methods
     #or a way to chain filtering methods
