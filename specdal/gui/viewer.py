@@ -10,12 +10,14 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
+from matplotlib.widgets import RectangleSelector
 import matplotlib
 sys.path.insert(0, os.path.abspath("../.."))
-from specdal.spectrum import Spectrum
+from specdal.containers.spectrum import Spectrum
 from collections import Iterable
-from specdal.collection import Collection
+from specdal.containers.collection import Collection
 matplotlib.use('TkAgg')
+from datetime import datetime
 
 class Viewer(tk.Frame):
     def __init__(self, parent, collection=None, with_toolbar=True):
@@ -27,6 +29,7 @@ class Viewer(tk.Frame):
         self.fig = plt.Figure(figsize=(8, 6))
         self.ax = self.fig.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
+        self.setupMouseNavigation()
         NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
         self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH)
         # spectra list
@@ -54,6 +57,29 @@ class Viewer(tk.Frame):
             self.update_list()
         # pack
         self.pack()
+        self.last_draw = datetime.now()
+
+    def setupMouseNavigation(self):
+        def onRectangleDraw(eclick,erelease):
+            print("This is a rectangle event!")
+            print(eclick.xdata,erelease.xdata)
+            if not self.collection is None:
+                x_data = self.collection.data.loc[eclick.xdata:erelease.xdata]
+                ylim = sorted([eclick.ydata,erelease.ydata])
+                is_in_box = ((x_data > ylim[0]) & (x_data < ylim[1])).any()
+                #TODO: Pandas builtin
+                highlighted = is_in_box.index[is_in_box].tolist()
+                print(highlighted)
+                for highlight in highlighted:
+                    #O(n^2) woof
+                    pos = list(self.collection._spectra.keys()).index(highlight)
+                    self.listbox.selection_set(pos)
+
+        self.rs = RectangleSelector(self.ax, onRectangleDraw, drawtype='none',
+                useblit=False, button=[1],spancoords='pixels',
+                interactive=False)
+
+
     @property
     def head(self):
         return self._head
@@ -173,7 +199,15 @@ class Viewer(tk.Frame):
             self.listbox.insert(tk.END, spectrum.name)
             if spectrum.name in self.collection.flags:
                 self.listbox.itemconfigure(i, foreground='red')
-                
+    
+    def ask_for_draw(self):
+        #debounce canvas updates
+        now = datetime.now()
+        print(now-self.last_draw)
+        if((now-self.last_draw).total_seconds() > 0.5):
+            self.canvas.draw()
+            self.last_draw = now
+
     def update(self, new_lim=False):
         """ Update the plot """
         if self.collection is None:
