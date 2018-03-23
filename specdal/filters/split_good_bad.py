@@ -1,4 +1,4 @@
-from specdal.collection import Collection,df_to_collection
+from specdal.containers.collection import Collection,df_to_collection
 
 def split_good_bad(collection,is_good):
     """

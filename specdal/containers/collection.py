@@ -150,6 +150,10 @@ class Collection(object):
             if not all([s.stitched for s in self.spectra]):
                 warnings.warn('ValueError: Try after stitching the overlaps')
             return None
+        except Exception as e:
+            print("Unexpected exception occurred")
+            raise e
+
     def append(self, spectrum):
         """
         insert spectrum to the collection

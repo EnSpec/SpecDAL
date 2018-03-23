@@ -1,4 +1,4 @@
-from specdal.collection import Collection,df_to_collection
+from specdal.containers.collection import Collection,df_to_collection
 from .split_good_bad import split_good_bad
 
 def filter_white(collection,wavelength0=0,wavelength1=10000,group='mean'):
