@@ -108,6 +108,12 @@ class Collection(object):
         A list of Spectrum objects in the collection
         """
         return list(self._spectra.values())
+
+
+    @property
+    def spectra_dict(self):
+        return self._spectra
+
     @spectra.setter
     def spectra(self, value):
         self._spectra = OrderedDict()

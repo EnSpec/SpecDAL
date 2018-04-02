@@ -33,13 +33,7 @@ class Viewer(tk.Frame):
         NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
         self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH)
         # spectra list
-        self.scrollbar = ttk.Scrollbar(self)
-        self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
-                                  selectmode=tk.EXTENDED, width=30)
-        self.scrollbar.config(command=self.listbox.yview)
-        self.listbox.pack(side=tk.LEFT, fill=tk.Y)
-        self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.listbox.bind('<<ListboxSelect>>', lambda x: self.set_head(self.listbox.curselection()))
+        self.create_listbox()
         # toggle options
         self.mean = False
         self.median = False
@@ -59,6 +53,8 @@ class Viewer(tk.Frame):
         self.pack()
         self.last_draw = datetime.now()
 
+
+
     def setupMouseNavigation(self):
         def onRectangleDraw(eclick,erelease):
             print("This is a rectangle event!")
@@ -70,9 +66,10 @@ class Viewer(tk.Frame):
                 #TODO: Pandas builtin
                 highlighted = is_in_box.index[is_in_box].tolist()
                 print(highlighted)
+                key_list = list(self.collection._spectra.keys())
                 for highlight in highlighted:
                     #O(n^2) woof
-                    pos = list(self.collection._spectra.keys()).index(highlight)
+                    pos = key_list.index(highlight)
                     self.listbox.selection_set(pos)
 
         self.rs = RectangleSelector(self.ax, onRectangleDraw, drawtype='none',
@@ -110,6 +107,50 @@ class Viewer(tk.Frame):
             self._collection = value
         else:
             self._collection = None
+
+
+    def move_selected_to_top(self):
+        selected = self.listbox.curselection()
+        keys = [self.collection.spectra[s].name for s in selected]
+        for s in selected[::-1]:
+            self.listbox.delete(s)
+        self.listbox.insert(0,*keys)
+        self.listbox.selection_set(0,len(keys))
+
+    def unselect_all(self):
+        self.listbox.selection_clear(0,tk.END)
+
+    def select_all(self):
+        self.listbox.selection_set(0,tk.END)
+
+    def invert_selection(self):
+        for i in range(self.listbox.size()):
+            if self.listbox.selection_includes(i):
+                self.listbox.selection_clear(i)
+            else:
+                self.listbox.selection_set(i)
+
+    def create_listbox(self):
+        self.scrollbar = ttk.Scrollbar(self)
+        self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
+                                  selectmode=tk.EXTENDED, width=30)
+        self.scrollbar.config(command=self.listbox.yview)
+
+        self.list_tools = tk.Frame(self)
+        tk.Button(self.list_tools, text="To Top", command = lambda:self.move_selected_to_top()
+                ).pack(side=tk.TOP,anchor=tk.NW)
+        tk.Button(self.list_tools, text="Select All", command = lambda:self.select_all()
+                ).pack(side=tk.TOP,anchor=tk.NW)
+        tk.Button(self.list_tools, text="Clear", command = lambda:self.unselect_all()
+                ).pack(side=tk.TOP,anchor=tk.NW)
+        tk.Button(self.list_tools, text="Invert", command = lambda:self.invert_selection()
+                ).pack(side=tk.TOP,anchor=tk.NW)
+        self.listbox.pack(side=tk.LEFT, fill=tk.Y)
+        self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        self.list_tools.pack(side=tk.LEFT,anchor=tk.NW)
+        self.listbox.bind('<<ListboxSelect>>', lambda x: 
+                self.set_head(self.listbox.curselection()))
+
     def create_toolbar(self):
         self.toolbar = tk.Frame(self)
         tk.Button(self.toolbar, text='Read', command=lambda:
@@ -170,15 +211,19 @@ class Viewer(tk.Frame):
         self.update()
         self.update_list()
     def toggle_flag(self):
-        idx = self.listbox.curselection()
-        for i in idx:
-            spectrum = self.collection.spectra[i].name
+        selected = self.listbox.curselection()
+        keys = [self.listbox.get(s) for s in selected]
+        
+        print(self.collection.flags)
+        for i,key in enumerate(keys):
+            print(i,key)
+            spectrum = key
             if spectrum in self.collection.flags:
                 self.collection.unflag(spectrum)
-                self.listbox.itemconfigure(i, foreground='black')
+                self.listbox.itemconfigure(selected[i], foreground='black')
             else:
                 self.collection.flag(spectrum)
-                self.listbox.itemconfigure(i, foreground='red')
+                self.listbox.itemconfigure(selected[i], foreground='red')
         # update figure
         self.update()
     def save_flag(self):
@@ -225,6 +270,7 @@ class Viewer(tk.Frame):
                 idx = [self.head]
             spectra = [self.collection.spectra[i] for i in idx]
             flags = [s.name in self.collection.flags for s in spectra]
+            print("flags = ", flags)
             flag_style = ' '
             if self.show_flagged:
                 flag_style = 'r'
@@ -241,6 +287,7 @@ class Viewer(tk.Frame):
             if self.show_flagged:
                 flag_style = 'r'
             flags = [s.name in self.collection.flags for s in self.collection.spectra]
+            print("flags = ", flags)
             self.collection.plot(ax=self.ax,
                                  style=list(np.where(flags, flag_style, 'k')),
                                  picker=1)
