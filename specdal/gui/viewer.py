@@ -47,7 +47,7 @@ class Viewer(tk.Frame):
         self.head = 0
         self.flag_filepath = os.path.abspath('./flagged_spectra.txt')
         if collection:
-            self.update(new_lim=True)
+            self.update_artists(new_lim=True)
             self.update_list()
         # pack
         self.pack()
@@ -67,6 +67,8 @@ class Viewer(tk.Frame):
                 highlighted = is_in_box.index[is_in_box].tolist()
                 print(highlighted)
                 key_list = list(self.collection._spectra.keys())
+
+                self.update_selected(highlighted)
                 for highlight in highlighted:
                     #O(n^2) woof
                     pos = key_list.index(highlight)
@@ -95,6 +97,8 @@ class Viewer(tk.Frame):
         self.head = value
         if self.spectrum_mode:
             self.update()
+        self.update_selected()
+
     @property
     def collection(self):
         return self._collection
@@ -119,9 +123,11 @@ class Viewer(tk.Frame):
 
     def unselect_all(self):
         self.listbox.selection_clear(0,tk.END)
+        self.update_selected()
 
     def select_all(self):
         self.listbox.selection_set(0,tk.END)
+        self.update_selected()
 
     def invert_selection(self):
         for i in range(self.listbox.size()):
@@ -129,6 +135,7 @@ class Viewer(tk.Frame):
                 self.listbox.selection_clear(i)
             else:
                 self.listbox.selection_set(i)
+        self.update_selected()
 
     def create_listbox(self):
         self.scrollbar = ttk.Scrollbar(self)
@@ -182,11 +189,14 @@ class Viewer(tk.Frame):
         tk.Button(self.toolbar, text='std', command=lambda:
                   self.toggle_std()).pack(side=tk.LEFT)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
+
     def set_collection(self, collection):
         new_lim = True if self.collection is None else False
         self.collection = collection
-        self.update(new_lim=new_lim)
+        self.update_artists(new_lim=new_lim)
+        self.update()
         self.update_list()
+
     def read_dir(self):
         directory = filedialog.askdirectory()
         if not directory:
@@ -210,11 +220,11 @@ class Viewer(tk.Frame):
             self.collection.unflag(spectrum)
         self.update()
         self.update_list()
+
     def toggle_flag(self):
         selected = self.listbox.curselection()
         keys = [self.listbox.get(s) for s in selected]
         
-        print(self.collection.flags)
         for i,key in enumerate(keys):
             print(i,key)
             spectrum = key
@@ -238,12 +248,14 @@ class Viewer(tk.Frame):
             flag_filepath = flag_filepath + '.txt'
         self.flag_filepath = flag_filepath
         self.save_flag()
+
     def update_list(self):
         self.listbox.delete(0, tk.END)
         for i, spectrum in enumerate(self.collection.spectra):
             self.listbox.insert(tk.END, spectrum.name)
             if spectrum.name in self.collection.flags:
                 self.listbox.itemconfigure(i, foreground='red')
+        self.update_selected()
     
     def ask_for_draw(self):
         #debounce canvas updates
@@ -253,8 +265,7 @@ class Viewer(tk.Frame):
             self.canvas.draw()
             self.last_draw = now
 
-    def update(self, new_lim=False):
-        """ Update the plot """
+    def update_artists(self,new_lim=False):
         if self.collection is None:
             return
         # save limits
@@ -274,10 +285,9 @@ class Viewer(tk.Frame):
             flag_style = ' '
             if self.show_flagged:
                 flag_style = 'r'
-            Collection(name='selection',
-                       spectra=spectra).plot(ax=self.ax,
-                                             style=list(np.where(flags, flag_style, 'k')),
-                                             picker=1)
+            artists = Collection(name='selection', spectra=spectra).plot(ax=self.ax,
+                         style=list(np.where(flags, flag_style, 'k')),
+                         picker=1)
             self.ax.set_title('selection')            
             # c = str(np.where(spectrum.name in self.collection.flags, 'r', 'k'))
             # spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
@@ -293,12 +303,83 @@ class Viewer(tk.Frame):
                                  picker=1)
             self.ax.set_title(self.collection.name)
 
+        keys = [s.name for s in self.collection.spectra]
+        artists = self.ax.lines
+        self.artist_dict = {key:artist for key,artist in zip(keys,artists)}
+
+        '''
         def onpick(event):
             spectrum_name = event.artist.get_label()
             pos = list(self.collection._spectra.keys()).index(spectrum_name)
             self.listbox.selection_set(pos)
         self.fig.canvas.mpl_connect('pick_event', onpick)
+        '''
 
+    def update_selected(self,to_add=None):
+        """ Update, only on flaged"""
+        if self.collection is None:
+            return
+
+        if to_add:
+            for key in to_add:
+                self.artist_dict[key].set_linestyle('--')
+        else:
+            keys = [s.name for s in self.collection.spectra]
+            selected = self.listbox.curselection()
+            selected_keys = [self.collection.spectra[s].name for s in selected]
+            for key in keys:
+                if key in selected_keys:
+                    self.artist_dict[key].set_linestyle('--')
+                else:
+                    self.artist_dict[key].set_linestyle('-')
+        self.canvas.draw()
+
+
+    def update(self):
+        """ Update the plot """
+        if self.collection is None:
+            return
+        # show statistics
+        if self.spectrum_mode:
+            print("Not implemented!")
+            """
+            idx = self.listbox.curselection()
+            if len(idx) == 0:
+                idx = [self.head]
+            spectra = [self.collection.spectra[i] for i in idx]
+            flags = [s.name in self.collection.flags for s in spectra]
+            print("flags = ", flags)
+            flag_style = ' '
+            if self.show_flagged:
+                flag_style = 'r'
+            Collection(name='selection',
+                       spectra=spectra).plot(ax=self.ax,
+                                             style=list(np.where(flags, flag_style, 'k')),
+                                             picker=1)
+            self.ax.set_title('selection')            
+            # c = str(np.where(spectrum.name in self.collection.flags, 'r', 'k'))
+            # spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
+            """
+        else:
+            # red curves for flagged spectra
+
+            keys = [s.name for s in self.collection.spectra]
+            for key in keys:
+                if key in self.collection.flags:
+                    if self.show_flagged:
+                        self.artist_dict[key].set_visible(True)
+                        self.artist_dict[key].set_color('red')
+                    else:
+                        self.artist_dict[key].set_visible(False)
+                else:
+                    self.artist_dict[key].set_color('black')
+
+            '''
+            self.collection.plot(ax=self.ax,
+                                 style=list(np.where(flags, flag_style, 'k')),
+                                 picker=1)
+            self.ax.set_title(self.collection.name)
+            '''
             
         if self.mean:
             self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean')
@@ -311,9 +392,6 @@ class Viewer(tk.Frame):
         if self.std:
             self.collection.std().plot(ax=self.ax, c='c', label=self.collection.name + '_std')
         # reapply limits
-        if new_lim == False:
-            self.ax.set_xlim(xlim)
-            self.ax.set_ylim(ylim)
         # legend
         if self.spectrum_mode:
             self.ax.legend()
@@ -321,6 +399,7 @@ class Viewer(tk.Frame):
             self.ax.legend().remove()
         self.ax.set_ylabel(self.collection.measure_type)
         self.canvas.draw()
+
     def next_spectrum(self):
         if not self.spectrum_mode:
             return
