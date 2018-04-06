@@ -31,7 +31,7 @@ class Viewer(tk.Frame):
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.setupMouseNavigation()
         NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
-        self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH)
+        self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH,expand=1)
         # spectra list
         self.create_listbox()
         # toggle options
@@ -40,6 +40,8 @@ class Viewer(tk.Frame):
         self.max = False
         self.min = False
         self.std = False
+
+        
         self.spectrum_mode = False
         self.show_flagged = True
         # data
@@ -50,7 +52,7 @@ class Viewer(tk.Frame):
             self.update_artists(new_lim=True)
             self.update_list()
         # pack
-        self.pack()
+        self.pack(fill=tk.BOTH,expand=1)
         self.last_draw = datetime.now()
 
 
@@ -145,49 +147,49 @@ class Viewer(tk.Frame):
 
         self.list_tools = tk.Frame(self)
         tk.Button(self.list_tools, text="To Top", command = lambda:self.move_selected_to_top()
-                ).pack(side=tk.TOP,anchor=tk.NW)
+                ).pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
         tk.Button(self.list_tools, text="Select All", command = lambda:self.select_all()
-                ).pack(side=tk.TOP,anchor=tk.NW)
+                ).pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
         tk.Button(self.list_tools, text="Clear", command = lambda:self.unselect_all()
-                ).pack(side=tk.TOP,anchor=tk.NW)
+                ).pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
         tk.Button(self.list_tools, text="Invert", command = lambda:self.invert_selection()
-                ).pack(side=tk.TOP,anchor=tk.NW)
-        self.listbox.pack(side=tk.LEFT, fill=tk.Y)
-        self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
-        self.list_tools.pack(side=tk.LEFT,anchor=tk.NW)
+                ).pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
+        self.list_tools.pack(side=tk.RIGHT,anchor=tk.NW)
+        self.scrollbar.pack(side=tk.RIGHT,anchor=tk.E, fill=tk.Y)
+        self.listbox.pack(side=tk.RIGHT,anchor=tk.E, fill=tk.Y)
         self.listbox.bind('<<ListboxSelect>>', lambda x: 
                 self.set_head(self.listbox.curselection()))
 
     def create_toolbar(self):
         self.toolbar = tk.Frame(self)
         tk.Button(self.toolbar, text='Read', command=lambda:
-                  self.read_dir()).pack(side=tk.LEFT)
+                  self.read_dir()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Mode', command=lambda:
-                  self.toggle_mode()).pack(side=tk.LEFT)
+                  self.toggle_mode()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Show/Hide Flagged',
-                  command=lambda: self.toggle_show_flagged()).pack(side=tk.LEFT)
+                  command=lambda: self.toggle_show_flagged()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Flag/Unflag', command=lambda:
-                  self.toggle_flag()).pack(side=tk.LEFT)
+                  self.toggle_flag()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Unflag all', command=lambda:
-                  self.unflag_all()).pack(side=tk.LEFT)
+                  self.unflag_all()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Save Flag', command=lambda:
-                  self.save_flag()).pack(side=tk.LEFT)
+                  self.save_flag()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Save Flag As', command=lambda:
-                  self.save_flag_as()).pack(side=tk.LEFT)
+                  self.save_flag_as()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Stitch', command=lambda:
-                  self.stitch()).pack(side=tk.LEFT)
+                  self.stitch()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Jump_Correct', command=lambda:
-                  self.jump_correct()).pack(side=tk.LEFT)       
+                  self.jump_correct()).pack(side=tk.LEFT,fill=tk.X,expand=1)       
         tk.Button(self.toolbar, text='mean', command=lambda:
-                  self.toggle_mean()).pack(side=tk.LEFT)       
+                  self.toggle_mean()).pack(side=tk.LEFT,fill=tk.X,expand=1)       
         tk.Button(self.toolbar, text='median', command=lambda:
-                  self.toggle_median()).pack(side=tk.LEFT)       
+                  self.toggle_median()).pack(side=tk.LEFT,fill=tk.X,expand=1)       
         tk.Button(self.toolbar, text='max', command=lambda:
-                  self.toggle_max()).pack(side=tk.LEFT)       
+                  self.toggle_max()).pack(side=tk.LEFT,fill=tk.X,expand=1)       
         tk.Button(self.toolbar, text='min', command=lambda:
-                  self.toggle_min()).pack(side=tk.LEFT)       
+                  self.toggle_min()).pack(side=tk.LEFT,fill=tk.X,expand=1)       
         tk.Button(self.toolbar, text='std', command=lambda:
-                  self.toggle_std()).pack(side=tk.LEFT)       
+                  self.toggle_std()).pack(side=tk.LEFT,fill=tk.X,expand=1)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
 
     def set_collection(self, collection):
@@ -268,6 +270,12 @@ class Viewer(tk.Frame):
     def update_artists(self,new_lim=False):
         if self.collection is None:
             return
+        #update values being plotted -> redo statistics
+        self.mean_line = None
+        self.median_line = None
+        self.max_line = None
+        self.min_line = None
+        self.std_line = None
         # save limits
         if new_lim == False:
             xlim = self.ax.get_xlim()
@@ -306,6 +314,7 @@ class Viewer(tk.Frame):
         keys = [s.name for s in self.collection.spectra]
         artists = self.ax.lines
         self.artist_dict = {key:artist for key,artist in zip(keys,artists)}
+        self.canvas.draw()
 
         '''
         def onpick(event):
@@ -341,8 +350,7 @@ class Viewer(tk.Frame):
             return
         # show statistics
         if self.spectrum_mode:
-            print("Not implemented!")
-            """
+            self.ax.clear()
             idx = self.listbox.curselection()
             if len(idx) == 0:
                 idx = [self.head]
@@ -359,7 +367,6 @@ class Viewer(tk.Frame):
             self.ax.set_title('selection')            
             # c = str(np.where(spectrum.name in self.collection.flags, 'r', 'k'))
             # spectrum.plot(ax=self.ax, label=spectrum.name, c=c)
-            """
         else:
             # red curves for flagged spectra
 
@@ -381,16 +388,6 @@ class Viewer(tk.Frame):
             self.ax.set_title(self.collection.name)
             '''
             
-        if self.mean:
-            self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean')
-        if self.median:
-            self.collection.median().plot(ax=self.ax, c='g', label=self.collection.name + '_median')
-        if self.max:
-            self.collection.max().plot(ax=self.ax, c='y', label=self.collection.name + '_max')
-        if self.min:
-            self.collection.min().plot(ax=self.ax, c='m', label=self.collection.name + '_min')
-        if self.std:
-            self.collection.std().plot(ax=self.ax, c='c', label=self.collection.name + '_std')
         # reapply limits
         # legend
         if self.spectrum_mode:
@@ -398,6 +395,12 @@ class Viewer(tk.Frame):
         else:
             self.ax.legend().remove()
         self.ax.set_ylabel(self.collection.measure_type)
+        #toggle appearance of statistics
+        if self.mean_line != None: self.mean_line.set_visible(self.mean)
+        if self.median_line != None: self.median_line.set_visible(self.median)
+        if self.max_line != None: self.max_line.set_visible(self.max)
+        if self.min_line != None: self.min_line.set_visible(self.min)
+        if self.std_line != None: self.std_line.set_visible(self.std)
         self.canvas.draw()
 
     def next_spectrum(self):
@@ -412,7 +415,8 @@ class Viewer(tk.Frame):
         Can't stitch one spectrum and plot the collection
         '''
         self.collection.stitch()
-        self.update()
+        self.update_artists()
+
     def jump_correct(self):
         ''' 
         Known Bugs
@@ -420,36 +424,55 @@ class Viewer(tk.Frame):
         Only performs jump correction on 1000 and 1800 wvls and 1 reference
         '''
         self.collection.jump_correct([1000, 1800], 1)
-        self.update()
+        self.update_artists()
+
     def toggle_mean(self):
         if self.mean:
             self.mean = False
+
         else:
             self.mean = True
+            if not self.mean_line:
+                self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean')
+                self.mean_line = self.ax.lines[-1]
         self.update()
+
     def toggle_median(self):
         if self.median:
             self.median = False
         else:
             self.median = True
+            if not self.median_line:
+                self.collection.median().plot(ax=self.ax, c='g', label=self.collection.name + '_median')
+                self.median_line = self.ax.lines[-1]
         self.update()
     def toggle_max(self):
         if self.max:
             self.max = False
         else:
             self.max = True
+            if not self.max_line:
+                self.collection.max().plot(ax=self.ax, c='y', label=self.collection.name + '_max')
+                self.max_line = self.ax.lines[-1]
         self.update()
     def toggle_min(self):
         if self.min:
             self.min = False
         else:
             self.min = True
+            if not self.min_line:
+                self.collection.min().plot(ax=self.ax, c='m', label=self.collection.name + '_min')
+                self.min_line = self.ax.lines[-1]
         self.update()
+
     def toggle_std(self):
         if self.std:
             self.std = False
         else:
             self.std = True
+            if not self.std_line:
+                self.collection.std().plot(ax=self.ax, c='c', label=self.collection.name + '_std')
+                self.std_line = self.ax.lines[-1]
         self.update()
 
 def read_test_data():
