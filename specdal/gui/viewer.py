@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
-from matplotlib.widgets import RectangleSelector
+from matplotlib.patches import Rectangle
 import matplotlib
 sys.path.insert(0, os.path.abspath("../.."))
 from specdal.containers.spectrum import Spectrum
@@ -30,7 +30,8 @@ class Viewer(tk.Frame):
         self.ax = self.fig.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.setupMouseNavigation()
-        NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
+        self.navbar = NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
+        self.setupNavBarExtras(self.navbar)
         self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH,expand=1)
         # spectra list
         self.create_listbox()
@@ -56,30 +57,94 @@ class Viewer(tk.Frame):
         self.last_draw = datetime.now()
 
 
+    def setupNavBarExtras(self,navbar):
+        working_dir = os.path.dirname(os.path.abspath(__file__))
+        self.select_icon = tk.PhotoImage(file=os.path.join(working_dir,"select.png"))
 
+        self.select_button = tk.Button(navbar,width="24",height="24",
+                image=self.select_icon, command = lambda:self.ax.set_navigate_mode(None)).pack(side=tk.LEFT,anchor=tk.W)
+
+
+
+    def rectangleStartEvent(self,event):
+        self._rect = None
+        self._rect_start = event
+
+    def rectangleMoveEvent(self,event):
+        try:
+            dx = event.xdata - self._rect_start.xdata
+            dy = event.ydata - self._rect_start.ydata
+        except TypeError:
+            #we're out of canvas bounds
+            return
+
+        if self._rect is not None:
+            self._rect.remove()
+
+        self._rect = Rectangle((self._rect_start.xdata,self._rect_start.ydata),
+                dx,dy, color='k',ls='--',lw=1,fill=False)
+        self.ax.add_patch(self._rect)
+        self.ax.draw_artist(self._rect)
+
+    def rectangleEndEvent(self,event):
+        if self._rect is not None:
+            self._rect.remove()
+
+        if not self.collection is None:
+            x_data = self.collection.data.loc[self._rect_start.xdata:event.xdata]
+            ylim = sorted([self._rect_start.ydata,event.ydata])
+            is_in_box = ((x_data > ylim[0]) & (x_data < ylim[1])).any()
+            
+            highlighted = is_in_box.index[is_in_box].tolist()
+            key_list = list(self.collection._spectra.keys())
+
+            self.update_selected(highlighted)
+            for highlight in highlighted:
+                #O(n^2) woof
+                pos = key_list.index(highlight)
+                self.listbox.selection_set(pos)
+
+    
     def setupMouseNavigation(self):
-        def onRectangleDraw(eclick,erelease):
-            print("This is a rectangle event!")
-            print(eclick.xdata,erelease.xdata)
-            if not self.collection is None:
-                x_data = self.collection.data.loc[eclick.xdata:erelease.xdata]
-                ylim = sorted([eclick.ydata,erelease.ydata])
-                is_in_box = ((x_data > ylim[0]) & (x_data < ylim[1])).any()
-                #TODO: Pandas builtin
-                highlighted = is_in_box.index[is_in_box].tolist()
-                print(highlighted)
-                key_list = list(self.collection._spectra.keys())
+        self.clicked = False
+        self.select_mode = 'rectangle'
+        self._bg_cache = None
+        
+        START_EVENTS = {
+            'rectangle':self.rectangleStartEvent
+        }
 
-                self.update_selected(highlighted)
-                for highlight in highlighted:
-                    #O(n^2) woof
-                    pos = key_list.index(highlight)
-                    self.listbox.selection_set(pos)
+        MOVE_EVENTS = {
+            'rectangle':self.rectangleMoveEvent
+        }
 
-        self.rs = RectangleSelector(self.ax, onRectangleDraw, drawtype='none',
-                useblit=False, button=[1],spancoords='pixels',
-                interactive=False)
+        END_EVENTS = {
+            'rectangle':self.rectangleEndEvent
+        }
 
+        def onMouseDown(event):
+            if self.ax.get_navigate_mode() is None:
+                self._bg_cache = self.canvas.copy_from_bbox(self.ax.bbox)
+                self.clicked = True
+                START_EVENTS[self.select_mode](event)
+
+        def onMouseUp(event):
+            self.canvas.restore_region(self._bg_cache)
+            self.canvas.blit(self.ax.bbox)
+            self.clicked = False
+            END_EVENTS[self.select_mode](event)
+
+        def onMouseMove(event):
+            if(self.clicked):
+                self.canvas.restore_region(self._bg_cache)
+                MOVE_EVENTS[self.select_mode](event)
+                self.canvas.blit(self.ax.bbox)
+
+        self.canvas.mpl_connect('button_press_event',onMouseDown)
+        self.canvas.mpl_connect('button_release_event',onMouseUp)
+        self.canvas.mpl_connect('motion_notify_event',onMouseMove)
+
+        
 
     @property
     def head(self):
@@ -390,10 +455,13 @@ class Viewer(tk.Frame):
             
         # reapply limits
         # legend
+        self.ax.legend().remove()
         if self.spectrum_mode:
-            self.ax.legend()
+            #self.ax.legend()
+            pass
         else:
-            self.ax.legend().remove()
+            #self.ax.legend().remove()
+            pass
         self.ax.set_ylabel(self.collection.measure_type)
         #toggle appearance of statistics
         if self.mean_line != None: self.mean_line.set_visible(self.mean)

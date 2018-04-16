@@ -19,6 +19,8 @@ setup(name='specdal',
       packages=['specdal',  'specdal.gui','specdal.readers','specdal.containers',
           'specdal.operators','specdal.filters'],
       install_requires=['numpy', 'pandas', 'matplotlib', 'scipy'],
+      package_data = {'':['specdal/gui/select.png']},
+      include_package_data = True,
       zip_safe=False,
       classifiers=[
           'Development Status :: 3 - Alpha',
