@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter.colorchooser import askcolor
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -55,14 +56,19 @@ class Viewer(tk.Frame):
         # pack
         self.pack(fill=tk.BOTH,expand=1)
         self.last_draw = datetime.now()
+        self.color = '#000000'
 
+
+    def returnToSelectMode(self):
+        self.ax.set_navigate_mode(None)
+        #self.ax.set_navigate(False)
 
     def setupNavBarExtras(self,navbar):
         working_dir = os.path.dirname(os.path.abspath(__file__))
         self.select_icon = tk.PhotoImage(file=os.path.join(working_dir,"select.png"))
 
         self.select_button = tk.Button(navbar,width="24",height="24",
-                image=self.select_icon, command = lambda:self.ax.set_navigate_mode(None)).pack(side=tk.LEFT,anchor=tk.W)
+                image=self.select_icon, command = self.returnToSelectMode).pack(side=tk.LEFT,anchor=tk.W)
 
 
 
@@ -89,9 +95,27 @@ class Viewer(tk.Frame):
     def rectangleEndEvent(self,event):
         if self._rect is not None:
             self._rect.remove()
+        else:
+            #make a small, fake rectangle
+            class FakeEvent(object):
+                def __init__(self,x,y):
+                    self.xdata, self.ydata = x, y
+
+            self._rect_start = FakeEvent(event.xdata-10,event.ydata+.01)
+            event = FakeEvent(event.xdata+10,event.ydata-.01)
 
         if not self.collection is None:
-            x_data = self.collection.data.loc[self._rect_start.xdata:event.xdata]
+            try:
+                #if our data is sorted, we can easily isolate it
+                x_data = self.collection.data.loc[self._rect_start.xdata:event.xdata]
+            except:
+                #Pandas builtin throws an error, use another pandas builtin
+                data = self.collection.data
+                x0 = min(self._rect_start.xdata,event.xdata)
+                x1 = max(self._rect_start.xdata,event.xdata)
+                in_xrange = (data.index >= x0) & (data.index <= x1)
+                x_data = data.iloc[in_xrange]
+
             ylim = sorted([self._rect_start.ydata,event.ydata])
             is_in_box = ((x_data > ylim[0]) & (x_data < ylim[1])).any()
             
@@ -204,6 +228,18 @@ class Viewer(tk.Frame):
                 self.listbox.selection_set(i)
         self.update_selected()
 
+    def change_color(self):
+        rgb,color = askcolor(self.color)
+        self.color = color or self.color
+        self.color_pick.config(bg=self.color)
+        #update our list of chosen colors
+        selected = self.listbox.curselection()
+        selected_keys = [self.collection.spectra[s].name for s in selected]
+
+        for key in selected_keys:
+            self.colors[key] = self.color
+        self.update()
+
     def create_listbox(self):
         self.scrollbar = ttk.Scrollbar(self)
         self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
@@ -219,6 +255,16 @@ class Viewer(tk.Frame):
                 ).pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
         tk.Button(self.list_tools, text="Invert", command = lambda:self.invert_selection()
                 ).pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
+
+        self.color_field=tk.Frame(self.list_tools)
+        tk.Label(self.color_field, text="Color:").pack(side=tk.LEFT)
+
+        self.color_pick = tk.Button(self.color_field, text="",
+                command=lambda:self.change_color(), bg='#000000')
+        self.color_pick.pack(side=tk.RIGHT,anchor=tk.NW,fill=tk.X,expand=True)
+
+        self.color_field.pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
+
         self.list_tools.pack(side=tk.RIGHT,anchor=tk.NW)
         self.scrollbar.pack(side=tk.RIGHT,anchor=tk.E, fill=tk.Y)
         self.listbox.pack(side=tk.RIGHT,anchor=tk.E, fill=tk.Y)
@@ -270,6 +316,29 @@ class Viewer(tk.Frame):
             return
         c = Collection(name="collection", directory=directory)
         self.set_collection(c)
+
+    def reset_stats(self):
+        if self.mean_line:
+            self.mean_line.remove()
+            self.mean_line = None
+            self.mean = False
+        if self.median_line:
+            self.median_line.remove()
+            self.median_line = None
+            self.median = False
+        if self.max_line:
+            self.max_line.remove()
+            self.max_line = None
+            self.max = False
+        if self.min_line:
+            self.min_line.remove()
+            self.min_line = None
+            self.min = False
+        if self.std_line:
+            self.std_line.remove()
+            self.std_line = None
+            self.std = False
+
     def toggle_mode(self):
         if self.spectrum_mode:
             self.spectrum_mode = False
@@ -283,12 +352,18 @@ class Viewer(tk.Frame):
             self.show_flagged = True
         self.update()
     def unflag_all(self):
+        #new flags -> new statistics
+        self.reset_stats()
+
         for spectrum in list(self.collection.flags):
             self.collection.unflag(spectrum)
         self.update()
         self.update_list()
 
     def toggle_flag(self):
+        #new flags -> new statistics
+        self.reset_stats()
+
         selected = self.listbox.curselection()
         keys = [self.listbox.get(s) for s in selected]
         
@@ -359,7 +434,7 @@ class Viewer(tk.Frame):
             if self.show_flagged:
                 flag_style = 'r'
             artists = Collection(name='selection', spectra=spectra).plot(ax=self.ax,
-                         style=list(np.where(flags, flag_style, 'k')),
+                         style=list(np.where(flags, flag_style, self.color)),
                          picker=1)
             self.ax.set_title('selection')            
             # c = str(np.where(spectrum.name in self.collection.flags, 'r', 'k'))
@@ -379,6 +454,8 @@ class Viewer(tk.Frame):
         keys = [s.name for s in self.collection.spectra]
         artists = self.ax.lines
         self.artist_dict = {key:artist for key,artist in zip(keys,artists)}
+        self.colors = {key:'black' for key in keys}
+        self.ax.legend().remove()
         self.canvas.draw()
 
         '''
@@ -444,7 +521,7 @@ class Viewer(tk.Frame):
                     else:
                         self.artist_dict[key].set_visible(False)
                 else:
-                    self.artist_dict[key].set_color('black')
+                    self.artist_dict[key].set_color(self.colors[key])
 
             '''
             self.collection.plot(ax=self.ax,
@@ -453,9 +530,6 @@ class Viewer(tk.Frame):
             self.ax.set_title(self.collection.name)
             '''
             
-        # reapply limits
-        # legend
-        self.ax.legend().remove()
         if self.spectrum_mode:
             #self.ax.legend()
             pass

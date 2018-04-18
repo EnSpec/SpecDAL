@@ -160,6 +160,21 @@ class Collection(object):
             print("Unexpected exception occurred")
             raise e
 
+    def _unflagged_data(self):
+        try:
+            spectra = [s for s in self.spectra if not s.name in self.flags]
+            return pd.concat(objs=[s.measurement for s in spectra],
+                             axis=1, keys=[s.name for s in spectra])
+        except ValueError as err:
+            # typically from duplicate index due to overlapping wavelengths
+            if not all([s.stitched for s in self.spectra]):
+                warnings.warn('ValueError: Try after stitching the overlaps')
+            return None
+        except Exception as e:
+            print("Unexpected exception occurred")
+            raise e
+
+
     def append(self, spectrum):
         """
         insert spectrum to the collection
@@ -297,47 +312,52 @@ class Collection(object):
         self.data.transpose().to_csv(*args, **kwargs)
     ##################################################
     # aggregate
-    def mean(self, append=False):
+    def mean(self, append=False, ignore_flagged=True):
         '''
         '''
+        data =  self._unflagged_data() if ignore_flagged else data
         spectrum = Spectrum(name=self.name + '_mean',
-                            measurement=self.data.mean(axis=1),
+                            measurement=data.mean(axis=1),
                             measure_type=self.measure_type)
         if append:
             self.append(spectrum)
         return spectrum
-    def median(self, append=False):
+    def median(self, append=False, ignore_flagged=True):
         '''
 	'''
+        data =  self._unflagged_data() if ignore_flagged else data
         spectrum = Spectrum(name=self.name + '_median',
-                            measurement=self.data.median(axis=1),
+                            measurement=data.median(axis=1),
                             measure_type=self.measure_type)
         if append:
             self.append(spectrum)
         return spectrum
-    def min(self, append=False):
+    def min(self, append=False, ignore_flagged=True):
         '''
 	'''
+        data =  self._unflagged_data() if ignore_flagged else data
         spectrum = Spectrum(name=self.name + '_min',
-                            measurement=self.data.min(axis=1),
+                            measurement=data.min(axis=1),
                             measure_type=self.measure_type)
         if append:
             self.append(spectrum)
         return spectrum
-    def max(self, append=False):
+    def max(self, append=False, ignore_flagged=True):
         '''
 	'''
+        data =  self._unflagged_data() if ignore_flagged else data
         spectrum = Spectrum(name=self.name + '_max',
-                            measurement=self.data.max(axis=1),
+                            measurement=data.max(axis=1),
                             measure_type=self.measure_type)
         if append:
             self.append(spectrum)
         return spectrum
-    def std(self, append=False):
+    def std(self, append=False, ignore_flagged=True):
         '''
 	'''
+        data =  self._unflagged_data() if ignore_flagged else data
         spectrum = Spectrum(name=self.name + '_std',
-                            measurement=self.data.std(axis=1),
+                            measurement=data.std(axis=1),
                             measure_type=self.measure_type)
         if append:
             self.append(spectrum)
