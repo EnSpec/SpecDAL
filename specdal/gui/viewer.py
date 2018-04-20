@@ -20,18 +20,48 @@ from specdal.containers.collection import Collection
 matplotlib.use('TkAgg')
 from datetime import datetime
 
+
+class ToolBar(NavigationToolbar2TkAgg):
+    def __init__(self,canvas_,parent,ax):
+        NavigationToolbar2TkAgg.__init__(self,canvas_,parent)
+        self._xlim = (0,1)
+        self._ylim = (0,1)
+        self._ax = ax
+        self._canvas_ = canvas_
+
+    def home(self):
+        """Override home method to return to home of most recent plot"""
+        self._ax.set_xlim(*self._xlim)
+        self._ax.set_ylim(*self._ylim)
+        self._canvas_.draw()
+
+    def setHome(self,xlim,ylim):
+        self._xlim = xlim
+        self._ylim = ylim
+
 class Viewer(tk.Frame):
     def __init__(self, parent, collection=None, with_toolbar=True):
         tk.Frame.__init__(self, parent)
         # toolbar
         if with_toolbar:
             self.create_toolbar()
+
         # canvas
+        canvas_frame = tk.Frame(self)
+        canvas_frame.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
+        title_frame = tk.Frame(canvas_frame)
+        title_frame.pack(side=tk.TOP,anchor=tk.NW)
+        tk.Label(title_frame,text=" Plot Title: ").pack(side=tk.LEFT)
+        self._title = tk.Entry(title_frame,width=30)
+        self._title.pack(side=tk.LEFT)
+        tk.Button(title_frame, text='Set', command=lambda: self.updateTitle()
+                ).pack(side=tk.LEFT)
+
         self.fig = plt.Figure(figsize=(8, 6))
         self.ax = self.fig.add_subplot(111)
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=canvas_frame)
         self.setupMouseNavigation()
-        self.navbar = NavigationToolbar2TkAgg(self.canvas, self) # for matplotlib features
+        self.navbar = ToolBar(self.canvas, canvas_frame, self.ax) # for matplotlib features
         self.setupNavBarExtras(self.navbar)
         self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH,expand=1)
         # spectra list
@@ -60,8 +90,12 @@ class Viewer(tk.Frame):
 
 
     def returnToSelectMode(self):
-        self.ax.set_navigate_mode(None)
-        #self.ax.set_navigate(False)
+        if self.ax.get_navigate_mode() == 'PAN':
+            #Turn panning off
+            self.navbar.pan()
+        elif self.ax.get_navigate_mode() == 'ZOOM':
+            #Turn zooming off
+            self.navbar.zoom()
 
     def setupNavBarExtras(self,navbar):
         working_dir = os.path.dirname(os.path.abspath(__file__))
@@ -101,23 +135,26 @@ class Viewer(tk.Frame):
                 def __init__(self,x,y):
                     self.xdata, self.ydata = x, y
 
-            self._rect_start = FakeEvent(event.xdata-10,event.ydata+.01)
-            event = FakeEvent(event.xdata+10,event.ydata-.01)
+            dy = (self.ax.get_ylim()[1]-self.ax.get_ylim()[0])/100.
+            self._rect_start = FakeEvent(event.xdata-10,event.ydata+dy)
+            event = FakeEvent(event.xdata+10,event.ydata-dy)
 
         if not self.collection is None:
+            x0 = min(self._rect_start.xdata,event.xdata)
+            x1 = max(self._rect_start.xdata,event.xdata)
+            y0 = min(self._rect_start.ydata,event.ydata)
+            y1 = max(self._rect_start.ydata,event.ydata)
             try:
                 #if our data is sorted, we can easily isolate it
-                x_data = self.collection.data.loc[self._rect_start.xdata:event.xdata]
+                x_data = self.collection.data.loc[x0:x1]
             except:
                 #Pandas builtin throws an error, use another pandas builtin
                 data = self.collection.data
-                x0 = min(self._rect_start.xdata,event.xdata)
-                x1 = max(self._rect_start.xdata,event.xdata)
                 in_xrange = (data.index >= x0) & (data.index <= x1)
                 x_data = data.iloc[in_xrange]
 
             ylim = sorted([self._rect_start.ydata,event.ydata])
-            is_in_box = ((x_data > ylim[0]) & (x_data < ylim[1])).any()
+            is_in_box = ((x_data > y0) & (x_data < y1)).any()
             
             highlighted = is_in_box.index[is_in_box].tolist()
             key_list = list(self.collection._spectra.keys())
@@ -153,16 +190,18 @@ class Viewer(tk.Frame):
                 START_EVENTS[self.select_mode](event)
 
         def onMouseUp(event):
-            self.canvas.restore_region(self._bg_cache)
-            self.canvas.blit(self.ax.bbox)
-            self.clicked = False
-            END_EVENTS[self.select_mode](event)
+            if self.ax.get_navigate_mode() is None:
+                self.canvas.restore_region(self._bg_cache)
+                self.canvas.blit(self.ax.bbox)
+                self.clicked = False
+                END_EVENTS[self.select_mode](event)
 
         def onMouseMove(event):
-            if(self.clicked):
-                self.canvas.restore_region(self._bg_cache)
-                MOVE_EVENTS[self.select_mode](event)
-                self.canvas.blit(self.ax.bbox)
+            if self.ax.get_navigate_mode() is None:
+                if(self.clicked):
+                    self.canvas.restore_region(self._bg_cache)
+                    MOVE_EVENTS[self.select_mode](event)
+                    self.canvas.blit(self.ax.bbox)
 
         self.canvas.mpl_connect('button_press_event',onMouseDown)
         self.canvas.mpl_connect('button_release_event',onMouseUp)
@@ -240,13 +279,35 @@ class Viewer(tk.Frame):
             self.colors[key] = self.color
         self.update()
 
+    def select_by_name(self):
+        pattern = self.name_filter.get()
+        for i in range(self.listbox.size()):
+            if pattern in self.listbox.get(i):
+                self.listbox.selection_set(i)
+            else:
+                self.listbox.selection_clear(i)
+        self.update_selected()
+
+
     def create_listbox(self):
-        self.scrollbar = ttk.Scrollbar(self)
-        self.listbox = tk.Listbox(self, yscrollcommand=self.scrollbar.set,
+        self._sbframe = tk.Frame(self)
+
+        list_label = tk.Frame(self._sbframe)
+        list_label.pack(side=tk.TOP,anchor=tk.N,fill=tk.X)
+        tk.Label(list_label,text="Name:").pack(side=tk.LEFT,anchor=tk.W)
+        self.name_filter = tk.Entry(list_label,width=14)
+        self.name_filter.pack(side=tk.LEFT,anchor=tk.W)
+        tk.Button(list_label,text="Select",
+                command=lambda:self.select_by_name()).pack(side=tk.LEFT,anchor=tk.W)
+        self.sblabel = tk.Label(list_label,text="Showing: 0")
+        self.sblabel.pack(side=tk.RIGHT)
+
+        self.scrollbar = tk.Scrollbar(self._sbframe)
+        self.listbox = tk.Listbox(self._sbframe, yscrollcommand=self.scrollbar.set,
                                   selectmode=tk.EXTENDED, width=30)
         self.scrollbar.config(command=self.listbox.yview)
 
-        self.list_tools = tk.Frame(self)
+        self.list_tools = tk.Frame(self._sbframe)
         tk.Button(self.list_tools, text="To Top", command = lambda:self.move_selected_to_top()
                 ).pack(side=tk.TOP,anchor=tk.NW,fill=tk.X)
         tk.Button(self.list_tools, text="Select All", command = lambda:self.select_all()
@@ -270,6 +331,7 @@ class Viewer(tk.Frame):
         self.listbox.pack(side=tk.RIGHT,anchor=tk.E, fill=tk.Y)
         self.listbox.bind('<<ListboxSelect>>', lambda x: 
                 self.set_head(self.listbox.curselection()))
+        self._sbframe.pack(side=tk.RIGHT,anchor=tk.E,fill=tk.Y)
 
     def create_toolbar(self):
         self.toolbar = tk.Frame(self)
@@ -302,6 +364,14 @@ class Viewer(tk.Frame):
         tk.Button(self.toolbar, text='std', command=lambda:
                   self.toggle_std()).pack(side=tk.LEFT,fill=tk.X,expand=1)       
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
+
+
+
+
+    def updateTitle(self):
+        print("Hello world!")
+        self.ax.set_title(self._title.get())
+        self.canvas.draw()
 
     def set_collection(self, collection):
         new_lim = True if self.collection is None else False
@@ -449,22 +519,16 @@ class Viewer(tk.Frame):
             self.collection.plot(ax=self.ax,
                                  style=list(np.where(flags, flag_style, 'k')),
                                  picker=1)
-            self.ax.set_title(self.collection.name)
+            #self.ax.set_title(self.collection.name)
 
         keys = [s.name for s in self.collection.spectra]
         artists = self.ax.lines
         self.artist_dict = {key:artist for key,artist in zip(keys,artists)}
         self.colors = {key:'black' for key in keys}
         self.ax.legend().remove()
+        self.navbar.setHome(self.ax.get_xlim(),self.ax.get_ylim())
         self.canvas.draw()
-
-        '''
-        def onpick(event):
-            spectrum_name = event.artist.get_label()
-            pos = list(self.collection._spectra.keys()).index(spectrum_name)
-            self.listbox.selection_set(pos)
-        self.fig.canvas.mpl_connect('pick_event', onpick)
-        '''
+        self.sblabel.config(text="Showing: {}".format(len(artists)))
 
     def update_selected(self,to_add=None):
         """ Update, only on flaged"""
@@ -523,6 +587,11 @@ class Viewer(tk.Frame):
                 else:
                     self.artist_dict[key].set_color(self.colors[key])
 
+            if self.show_flagged:
+                self.sblabel.config(text="Showing: {}".format(len(self.artist_dict)))
+            else:
+                self.sblabel.config(text="Showing: {}".format(
+                    len(self.artist_dict)-len(self.collection.flags)))
             '''
             self.collection.plot(ax=self.ax,
                                  style=list(np.where(flags, flag_style, 'k')),
