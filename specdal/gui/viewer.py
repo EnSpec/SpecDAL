@@ -39,6 +39,90 @@ class ToolBar(NavigationToolbar2TkAgg):
         self._xlim = xlim
         self._ylim = ylim
 
+class PlotConfigDialog(tk.Toplevel):
+
+    def __init__(self, parent, xlim=(0,1),ylim=(0,1),title='',
+            xlabel='',ylabel=''):
+        tk.Toplevel.__init__(self,parent)
+        self.transient(parent)
+        self.parent = parent
+        self.result = None
+        self.title("Plot Config")
+        self.xlim=xlim
+        self.ylim=ylim
+        self.title_ = title
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.applied = False
+
+        body = tk.Frame(self)
+        self.body(body)
+        body.pack(fill=tk.BOTH,expand=1)
+        
+        btnFrame = tk.Frame(self)
+        btnFrame.pack(side=tk.BOTTOM,fill=tk.X)
+        tk.Button(btnFrame,text="OK",width=10,command=self.apply
+                ).pack(side=tk.LEFT)
+        tk.Button(btnFrame,text="Cancel",width=10,command=self.cancel
+                ).pack(side=tk.LEFT)
+    
+        self.bind('<Return>',self.apply)
+        self.bind('<Escape>',self.cancel)
+
+        self.wait_window(self)
+
+    def body(self,master):
+        tk.Label(master,text="Plot Title: ").grid(sticky=tk.W,row=0)
+        tk.Label(master,text="X-Label: ").grid(sticky=tk.W,row=1)
+        tk.Label(master,text="Y-Label: ").grid(sticky=tk.W,row=2)
+        tk.Label(master,text="X-Min: ").grid(sticky=tk.W,row=3)
+        tk.Label(master,text="X-Max: ").grid(sticky=tk.W,row=4)
+        tk.Label(master,text="Y-Min: ").grid(sticky=tk.W,row=5)
+        tk.Label(master,text="Y-Max: ").grid(sticky=tk.W,row=6)
+
+        self.titlebox = tk.Entry(master)
+        self.titlebox.grid(sticky=tk.W+tk.E,row=0,column=1)
+        self.titlebox.insert(0,self.title_)
+
+        self.xlabelbox = tk.Entry(master)
+        self.xlabelbox.grid(sticky=tk.W+tk.E,row=1,column=1)
+        self.xlabelbox.insert(0,self.xlabel)
+
+        self.ylabelbox = tk.Entry(master)
+        self.ylabelbox.grid(sticky=tk.W+tk.E,row=2,column=1)
+        self.ylabelbox.insert(0,self.ylabel)
+
+        self.xminbox = tk.Entry(master)
+        self.xminbox.grid(sticky=tk.W+tk.E,row=3,column=1)
+        self.xminbox.insert(0,self.xlim[0])
+
+        self.xmaxbox = tk.Entry(master)
+        self.xmaxbox.grid(sticky=tk.W+tk.E,row=4,column=1)
+        self.xmaxbox.insert(0,self.xlim[1])
+
+        self.yminbox = tk.Entry(master)
+        self.yminbox.grid(sticky=tk.W+tk.E,row=5,column=1)
+        self.yminbox.insert(0,self.ylim[0])
+
+        self.ymaxbox = tk.Entry(master)
+        self.ymaxbox.grid(sticky=tk.W+tk.E,row=6,column=1)
+        self.ymaxbox.insert(0,self.ylim[1])
+
+    def apply(self,event=None):
+        self.applied = True
+        self.title = self.titlebox.get()   or ''
+        self.xlabel = self.xlabelbox.get() or ''
+        self.ylabel = self.ylabelbox.get() or ''
+        self.xlim=float(self.xminbox.get())or 0,float(self.xmaxbox.get()) or 1
+        self.ylim=float(self.yminbox.get())or 0,float(self.ymaxbox.get())or 1
+        
+        self.cancel()
+
+    def cancel(self,event=None):
+        self.parent.focus_set()
+        self.destroy()
+
+
 class Viewer(tk.Frame):
     def __init__(self, parent, collection=None, with_toolbar=True):
         tk.Frame.__init__(self, parent)
@@ -47,21 +131,21 @@ class Viewer(tk.Frame):
             self.create_toolbar()
 
         # canvas
-        canvas_frame = tk.Frame(self)
-        canvas_frame.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
-        title_frame = tk.Frame(canvas_frame)
-        title_frame.pack(side=tk.TOP,anchor=tk.NW)
-        tk.Label(title_frame,text=" Plot Title: ").pack(side=tk.LEFT)
-        self._title = tk.Entry(title_frame,width=30)
-        self._title.pack(side=tk.LEFT)
-        tk.Button(title_frame, text='Set', command=lambda: self.updateTitle()
-                ).pack(side=tk.LEFT)
+        #canvas_frame = tk.Frame(self)
+        #canvas_frame.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
+        #title_frame = tk.Frame(canvas_frame)
+        #title_frame.pack(side=tk.TOP,anchor=tk.NW)
+        #tk.Label(title_frame,text=" Plot Title: ").pack(side=tk.LEFT)
+        #self._title = tk.Entry(title_frame,width=30)
+        #self._title.pack(side=tk.LEFT)
+        #tk.Button(title_frame, text='Set', command=lambda: self.updateTitle()
+        #        ).pack(side=tk.LEFT)
 
         self.fig = plt.Figure(figsize=(8, 6))
         self.ax = self.fig.add_subplot(111)
-        self.canvas = FigureCanvasTkAgg(self.fig, master=canvas_frame)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.setupMouseNavigation()
-        self.navbar = ToolBar(self.canvas, canvas_frame, self.ax) # for matplotlib features
+        self.navbar = ToolBar(self.canvas, self, self.ax) # for matplotlib features
         self.setupNavBarExtras(self.navbar)
         self.canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH,expand=1)
         # spectra list
@@ -83,9 +167,10 @@ class Viewer(tk.Frame):
         if collection:
             self.update_artists(new_lim=True)
             self.update_list()
+
+
         # pack
         self.pack(fill=tk.BOTH,expand=1)
-        self.last_draw = datetime.now()
         self.color = '#000000'
 
 
@@ -104,7 +189,24 @@ class Viewer(tk.Frame):
         self.select_button = tk.Button(navbar,width="24",height="24",
                 image=self.select_icon, command = self.returnToSelectMode).pack(side=tk.LEFT,anchor=tk.W)
 
+        self.dirLbl = tk.Label(navbar,text="Viewing: None")
+        self.dirLbl.pack(side=tk.LEFT,anchor=tk.W)
 
+    
+    def plotConfig(self):
+        config = PlotConfigDialog(self,title=self.ax.get_title(),
+                xlabel=self.ax.get_xlabel(),ylabel=self.ax.get_ylabel(),
+                xlim=self.ax.get_xlim(),ylim=self.ax.get_ylim()
+        )
+        if(config.applied):
+            print(config.title)
+            print(config.xlim)
+            self.ax.set_title(config.title)
+            self.ax.set_xlabel(config.xlabel)
+            self.ax.set_ylabel(config.ylabel)
+            self.ax.set_xlim(*config.xlim)
+            self.ax.set_ylim(*config.ylim)
+            self.canvas.draw()
 
     def rectangleStartEvent(self,event):
         self._rect = None
@@ -339,15 +441,17 @@ class Viewer(tk.Frame):
                   self.read_dir()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Mode', command=lambda:
                   self.toggle_mode()).pack(side=tk.LEFT,fill=tk.X,expand=1)
+        tk.Button(self.toolbar, text="Plot Config", command=lambda:
+                  self.plotConfig()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Show/Hide Flagged',
                   command=lambda: self.toggle_show_flagged()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Flag/Unflag', command=lambda:
                   self.toggle_flag()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Unflag all', command=lambda:
                   self.unflag_all()).pack(side=tk.LEFT,fill=tk.X,expand=1)
-        tk.Button(self.toolbar, text='Save Flag', command=lambda:
-                  self.save_flag()).pack(side=tk.LEFT,fill=tk.X,expand=1)
-        tk.Button(self.toolbar, text='Save Flag As', command=lambda:
+        #tk.Button(self.toolbar, text='Save Flag', command=lambda:
+        #          self.save_flag()).pack(side=tk.LEFT,fill=tk.X,expand=1)
+        tk.Button(self.toolbar, text='Save Flags', command=lambda:
                   self.save_flag_as()).pack(side=tk.LEFT,fill=tk.X,expand=1)
         tk.Button(self.toolbar, text='Stitch', command=lambda:
                   self.stitch()).pack(side=tk.LEFT,fill=tk.X,expand=1)
@@ -386,6 +490,7 @@ class Viewer(tk.Frame):
             return
         c = Collection(name="collection", directory=directory)
         self.set_collection(c)
+        self.dirLbl.config(text="Viewing: "+directory)
 
     def reset_stats(self):
         if self.mean_line:
@@ -586,6 +691,7 @@ class Viewer(tk.Frame):
                         self.artist_dict[key].set_visible(False)
                 else:
                     self.artist_dict[key].set_color(self.colors[key])
+                    self.artist_dict[key].set_visible(True)
 
             if self.show_flagged:
                 self.sblabel.config(text="Showing: {}".format(len(self.artist_dict)))
@@ -644,7 +750,7 @@ class Viewer(tk.Frame):
         else:
             self.mean = True
             if not self.mean_line:
-                self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean')
+                self.collection.mean().plot(ax=self.ax, c='b', label=self.collection.name + '_mean',lw=3)
                 self.mean_line = self.ax.lines[-1]
         self.update()
 
@@ -654,7 +760,7 @@ class Viewer(tk.Frame):
         else:
             self.median = True
             if not self.median_line:
-                self.collection.median().plot(ax=self.ax, c='g', label=self.collection.name + '_median')
+                self.collection.median().plot(ax=self.ax, c='g', label=self.collection.name + '_median',lw=3)
                 self.median_line = self.ax.lines[-1]
         self.update()
     def toggle_max(self):
@@ -663,7 +769,7 @@ class Viewer(tk.Frame):
         else:
             self.max = True
             if not self.max_line:
-                self.collection.max().plot(ax=self.ax, c='y', label=self.collection.name + '_max')
+                self.collection.max().plot(ax=self.ax, c='y', label=self.collection.name + '_max',lw=3)
                 self.max_line = self.ax.lines[-1]
         self.update()
     def toggle_min(self):
@@ -672,7 +778,7 @@ class Viewer(tk.Frame):
         else:
             self.min = True
             if not self.min_line:
-                self.collection.min().plot(ax=self.ax, c='m', label=self.collection.name + '_min')
+                self.collection.min().plot(ax=self.ax, c='m', label=self.collection.name + '_min',lw=3)
                 self.min_line = self.ax.lines[-1]
         self.update()
 
@@ -682,7 +788,7 @@ class Viewer(tk.Frame):
         else:
             self.std = True
             if not self.std_line:
-                self.collection.std().plot(ax=self.ax, c='c', label=self.collection.name + '_std')
+                self.collection.std().plot(ax=self.ax, c='c', label=self.collection.name + '_std',lw=3)
                 self.std_line = self.ax.lines[-1]
         self.update()
 
