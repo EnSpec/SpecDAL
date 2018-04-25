@@ -123,6 +123,71 @@ class PlotConfigDialog(tk.Toplevel):
         self.destroy()
 
 
+class ColorPickerDialog(tk.Toplevel):
+    TOPLEVEL_COLORS = [(255,0,0),(255,165,0),(255,255,0),(0,255,0),
+            (0,128,0),(0,0,255),(0,0,128),(128,0,128),(128,128,128)]
+    
+    FACTORS = [.55,.45,.35,.25,0,.95,.75,.55,.35,.15]
+    GS_FACTORS = [1,.8,.5,.2,0,.9,.7,.5,.2,0]
+    def __init__(self, parent, start_color=(0,0,0)):
+        tk.Toplevel.__init__(self,parent)
+        self.transient(parent)
+        self.parent = parent
+        self.result = None
+        self.title("Color Picker")
+        self.applied = False
+
+        body = tk.Frame(self)
+        self.body(body)
+        body.pack(fill=tk.BOTH,expand=1)
+        
+        self.bind('<Escape>',self.cancel)
+
+        self.wait_window(self)
+
+    def apply(self,color=None):
+        print(color)
+        self.applied = True
+        self.color = color
+        self.cancel()
+
+    def cancel(self,event=None):
+        self.parent.focus_set()
+        self.destroy()
+
+    def tint(self,color,factor):
+        r = color[0]+(255-color[0])*factor
+        g = color[1]+(255-color[1])*factor
+        b = color[2]+(255-color[2])*factor
+        return (r,g,b)
+
+    def shade(self,color,factor):
+        r = color[0]*factor
+        g = color[1]*factor
+        b = color[2]*factor
+        return r,g,b
+
+    def toHex(self,color):
+        out = ["#"]
+        for c in color:
+           out.append(('%2s'%hex(int(c))[2:]).replace(' ','0'))
+        return ''.join(out)
+
+
+    def body(self,master):
+        for i,color in enumerate(self.TOPLEVEL_COLORS):
+            factors = self.FACTORS if i < len(self.TOPLEVEL_COLORS)-1 \
+                    else self.GS_FACTORS
+            for j in range(10):
+                if j < 5:
+                    c = self.toHex(self.tint(color,factors[j]))
+                else:
+                    c = self.toHex(self.shade(color,factors[j]))
+                tk.Button(master,bg=c,width="1",height="1",
+                        activebackground=c,borderwidth=0,
+                        command=lambda c=c:self.apply(color=c)
+                        ).grid(row=j+1,column=i+1)
+
 class Viewer(tk.Frame):
     def __init__(self, parent, collection=None, with_toolbar=True):
         tk.Frame.__init__(self, parent)
@@ -262,10 +327,12 @@ class Viewer(tk.Frame):
             key_list = list(self.collection._spectra.keys())
 
             self.update_selected(highlighted)
+            flags = self.collection.flags
             for highlight in highlighted:
                 #O(n^2) woof
-                pos = key_list.index(highlight)
-                self.listbox.selection_set(pos)
+                if (not (highlight in flags)) or self.show_flagged:
+                    pos = key_list.index(highlight)
+                    self.listbox.selection_set(pos)
 
     
     def setupMouseNavigation(self):
@@ -370,16 +437,20 @@ class Viewer(tk.Frame):
         self.update_selected()
 
     def change_color(self):
-        rgb,color = askcolor(self.color)
-        self.color = color or self.color
-        self.color_pick.config(bg=self.color)
-        #update our list of chosen colors
-        selected = self.listbox.curselection()
-        selected_keys = [self.collection.spectra[s].name for s in selected]
+        cpicker = ColorPickerDialog(self)
+        #rgb,color = askcolor(self.color)
+        if cpicker.applied:
+            print("apply yourslef!")
+            self.color = cpicker.color 
+            print(cpicker.color)
+            self.color_pick.config(bg=self.color)
+            #update our list of chosen colors
+            selected = self.listbox.curselection()
+            selected_keys = [self.collection.spectra[s].name for s in selected]
 
-        for key in selected_keys:
-            self.colors[key] = self.color
-        self.update()
+            for key in selected_keys:
+                self.colors[key] = self.color
+            self.update()
 
     def select_by_name(self):
         pattern = self.name_filter.get()
