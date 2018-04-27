@@ -7,17 +7,17 @@ from tkinter import messagebox
 from tkinter.colorchooser import askcolor
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
-import matplotlib
 sys.path.insert(0, os.path.abspath("../.."))
 from specdal.containers.spectrum import Spectrum
 from collections import Iterable
 from specdal.containers.collection import Collection
-matplotlib.use('TkAgg')
 from datetime import datetime
 
 
