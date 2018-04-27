@@ -4,7 +4,6 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
-from tkinter.colorchooser import askcolor
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -557,7 +556,15 @@ class Viewer(tk.Frame):
         self.update_list()
 
     def read_dir(self):
-        directory = os.path.split(filedialog.askopenfilename())[0]
+        try:
+            directory = os.path.split(filedialog.askopenfilename(
+               filetypes=(
+                   ("Supported types","*.asd *.sed *.sig *.pico"),
+                   ("All files","*"),
+                   )
+            ))[0]
+        except:
+            return
         if not directory:
             return
         c = Collection(name="collection", directory=directory)
