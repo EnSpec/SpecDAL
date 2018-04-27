@@ -183,11 +183,13 @@ class ColorPickerDialog(tk.Toplevel):
                     c = self.toHex(self.tint(color,factors[j]))
                 else:
                     c = self.toHex(self.shade(color,factors[j]))
-                tk.Button(master,bg=c,width="1",height="1",
-                        activebackground=c,highlightbackground=c,
+                frame = tk.Frame(master,bg=c,width="24",height="24",
+                        #activebackground=cpehighlightbackground=c,
                         borderwidth=0,
-                        command=lambda c=c:self.apply(color=c)
-                        ).grid(row=j+1,column=i+1)
+                        #command=
+                        )
+                frame.bind("<Button-1>",lambda event,c=c:self.apply(color=c))
+                frame.grid(row=j+1,column=i+1)
 
 class Viewer(tk.Frame):
     def __init__(self, parent, collection=None, with_toolbar=True):
@@ -441,9 +443,7 @@ class Viewer(tk.Frame):
         cpicker = ColorPickerDialog(self)
         #rgb,color = askcolor(self.color)
         if cpicker.applied:
-            print("apply yourslef!")
             self.color = cpicker.color 
-            print(cpicker.color)
             self.color_pick.config(bg=self.color)
             #update our list of chosen colors
             selected = self.listbox.curselection()
