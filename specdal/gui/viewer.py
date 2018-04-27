@@ -184,7 +184,8 @@ class ColorPickerDialog(tk.Toplevel):
                 else:
                     c = self.toHex(self.shade(color,factors[j]))
                 tk.Button(master,bg=c,width="1",height="1",
-                        activebackground=c,borderwidth=0,
+                        activebackground=c,highlightbackground=c,
+                        borderwidth=0,
                         command=lambda c=c:self.apply(color=c)
                         ).grid(row=j+1,column=i+1)
 
@@ -556,7 +557,7 @@ class Viewer(tk.Frame):
         self.update_list()
 
     def read_dir(self):
-        directory = filedialog.askdirectory()
+        directory = os.path.split(filedialog.askopenfilename())[0]
         if not directory:
             return
         c = Collection(name="collection", directory=directory)
