@@ -5,8 +5,8 @@ import sys
 from os.path import abspath, expanduser
 import os
 sys.path.insert(0, os.path.abspath('..'))
-from specdal.spectrum import Spectrum
-from specdal.reader import read
+from specdal.containers.spectrum import Spectrum
+from specdal.readers import read
 
 parser = argparse.ArgumentParser(description='SpecDAL Info')
 
