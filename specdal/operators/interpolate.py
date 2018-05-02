@@ -30,6 +30,12 @@ def interpolate(series, spacing=1, method='slinear'):
     Parameters
     ----------
     series: pandas.Series object
+
+    spacing: int
+        wavelength spacing to interpolate at (in nm)
+
+    method: string
+        "slinear" or "cubic"
     
     """
     seqs = []

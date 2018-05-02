@@ -39,6 +39,9 @@ def stitch(series, method='max'):
     Parameters
     ----------
     series: pandas.Series object
+
+    method: string
+        How to compute final value in case of overlap. "mean","median","min", or "max". 
     
     """
     #find indices of overlap

@@ -2,24 +2,33 @@
 from os.path import dirname, basename, isfile 
 from os.path import abspath, expanduser, splitext, join, split
 import glob
+from .asd import read_asd
+from .sed import read_sed
+from .sig import read_sig
+from .pico import read_pico
+
 modules = glob.glob(dirname(__file__)+"/*.py")
 __all__ = [ basename(f)[:-3] for f in modules if isfile(f) and not f.endswith('__init__.py')]
 
-from . import *
 SUPPORTED_READERS = {
-        '.asd':asd.read_asd, 
-        '.sig':sig.read_sig,
-        '.sed':sed.read_sed,
-        '.pico':pico.read_pico,
-        '.light':pico.read_pico,
-        '.dark':pico.read_pico,
+        '.asd':read_asd, 
+        '.sig':read_sig,
+        '.sed':read_sed,
+        '.pico':read_pico,
+        '.light':read_pico,
+        '.dark':read_pico,
 }
+
 def read(filepath, read_data=True, read_metadata=True, verbose=False):
-    """
-    Calls the appropriate reader based on file extension
+    """Calls a reader function based on the extension of the passed filename.
+        .asd: read_asd
+        .sig: read_sig
+        .sed: read_sed
+        .pico: read_pico
     """
     ext = splitext(filepath)[1]
     assert ext in SUPPORTED_READERS
     reader = SUPPORTED_READERS[ext]
     return reader(abspath(expanduser(filepath)), read_data,
                   read_metadata, verbose)
+

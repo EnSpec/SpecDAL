@@ -2,7 +2,16 @@ from specdal.containers.collection import Collection,df_to_collection
 from .split_good_bad import split_good_bad
 
 def filter_white(collection,wavelength0=0,wavelength1=10000,group='mean'):
-    """Filter out white reference spectra from collection"""
+    """Filter white reference spectra from collection
+    
+    Returns
+    -------
+    good: specdal.containers.Collection
+        A new collection made of the spectra that passed the filter
+
+    bad: specdal.containers.Collection
+        A new collection made of the spectra that failed the filter
+    """
     data = collection.data.loc[wavelength0:wavelength1]
     mean = data.mean(axis=0)
     std = data.std(axis=0)

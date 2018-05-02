@@ -1,0 +1,230 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Specdal Pipeline Script &#8212; specdal 2.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Specdal Info Script" href="specdal_info.html" />
+    <link rel="prev" title="API Reference" href="api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="specdal_info.html" title="Specdal Info Script"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API Reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">specdal 2.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="specdal-pipeline-script">
+<h1>Specdal Pipeline Script<a class="headerlink" href="#specdal-pipeline-script" title="Permalink to this headline">¶</a></h1>
+<p>Specdal provides a command line script <code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span></code> for batch
+processing of spectral data files in a directory. A typical input to
+<code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span></code> is a directory containing spectral files
+(i.e. .asd files), which will be converted into .csv files and figures
+of spectra. User can provide arguments to customize the processing
+operations (i.e. jump correction, groupby) and output (i.e. .csv file
+of group means). This page describes the usage and provides examples.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">specdal_pipeline</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">proximal_reference</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">PATH</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">op</span> <span class="n">PREFIX</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">of</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">od</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">oi</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="p">{</span><span class="n">slinear</span><span class="p">,</span><span class="n">cubic</span><span class="p">}]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="ow">is</span> <span class="n">SPC</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="p">{</span><span class="n">mean</span><span class="p">,</span><span class="n">median</span><span class="p">,</span><span class="nb">min</span><span class="p">,</span><span class="nb">max</span><span class="p">}]</span> <span class="p">[</span><span class="o">-</span><span class="n">j</span> <span class="p">{</span><span class="n">additive</span><span class="p">}]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">js</span> <span class="n">WVL</span> <span class="p">[</span><span class="n">WVL</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">jr</span> <span class="n">REF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">gs</span> <span class="n">S</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">gi</span> <span class="p">[</span><span class="n">I</span> <span class="p">[</span><span class="n">I</span> <span class="o">...</span><span class="p">]]]</span> <span class="p">[</span><span class="o">-</span><span class="n">gmean</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">gmedian</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">gstd</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">fstd</span> <span class="n">wl0</span> <span class="n">wl1</span> <span class="n">n_std</span> <span class="p">[</span><span class="n">wl0</span> <span class="n">wl1</span> <span class="n">n_std</span> <span class="o">...</span><span class="p">]]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">fthresh</span> <span class="n">wl0</span> <span class="n">wl1</span> <span class="n">LO</span> <span class="n">HI</span> <span class="p">[</span><span class="n">wl0</span> <span class="n">wl1</span> <span class="n">LO</span> <span class="n">HI</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">fwhite</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">fg</span> <span class="n">method</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">fo</span> <span class="nb">set</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">yl</span> <span class="n">ymin</span> <span class="n">ymax</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+                        <span class="n">INPUT_PATH</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="command-line-arguments">
+<h2>Command Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><dl class="docutils">
+<dt>positional arguments:</dt>
+<dd><code class="docutils literal notranslate"><span class="pre">INPUT_PATH</span></code>            directory containing input files</dd>
+<dt>optional arguments:</dt>
+<dd><p class="first"><code class="docutils literal notranslate"><span class="pre">-h,</span> <span class="pre">--help</span></code>            show this help message and exit</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">--proximal_reference</span> <span class="pre">PATH</span></code></dt>
+<dd>directory containing proximal reference spectral files</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-o</span> <span class="pre">PATH,</span> <span class="pre">--output_dir</span> <span class="pre">PATH</span></code></dt>
+<dd>directory to store the csv files and figures</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-op</span> <span class="pre">PREFIX,</span> <span class="pre">--prefix</span> <span class="pre">PREFIX</span></code></dt>
+<dd>option to specify prefix for output dataset files</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">-of,</span> <span class="pre">--omit_figures</span></code>   option to omit output png figures</p>
+<p><code class="docutils literal notranslate"><span class="pre">-od,</span> <span class="pre">--omit_data</span></code>      option to omit output csv files</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">-oi,</span> <span class="pre">--omit_individual</span></code></dt>
+<dd>option to omit output of individual csv file for each spectrum file</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-i</span> <span class="pre">{slinear,cubic},</span> <span class="pre">--interpolate</span> <span class="pre">{slinear,cubic}</span></code></dt>
+<dd>specify the interpolation method.
+method descriptions can be found on scipy docs:
+<a class="reference external" href="https://docs.scipy.org/doc/scipy-0.19.1/reference/generated/scipy.interpolate.interp1d.html">https://docs.scipy.org/doc/scipy-0.19.1/reference/generated/scipy.interpolate.interp1d.html</a></dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-is</span> <span class="pre">SPC,</span> <span class="pre">--interpolate_spacing</span> <span class="pre">SPC</span></code></dt>
+<dd>specify desired spacing for interpolation in nanometers</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">{mean,median,min,max},</span> <span class="pre">--stitch</span> <span class="pre">{mean,median,min,max}</span></code></dt>
+<dd>specify overlap stitching method;
+not necessary if data at detector edges does not overlap</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-j</span> <span class="pre">{additive},</span> <span class="pre">--jump_correct</span> <span class="pre">{additive}</span></code></dt>
+<dd>specify jump correction method;</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-js</span> <span class="pre">WVL</span> <span class="pre">[WVL</span> <span class="pre">...],</span> <span class="pre">--jump_correct_splices</span> <span class="pre">WVL</span> <span class="pre">[WVL</span> <span class="pre">...]</span></code></dt>
+<dd>wavelengths of jump locations</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-jr</span> <span class="pre">REF,</span> <span class="pre">--jump_correct_reference</span> <span class="pre">REF</span></code></dt>
+<dd>specify the reference detector (e.g. VNIR is 1, SWIR1 is 2)</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">-g,</span> <span class="pre">--group_by</span></code>        create groups using filenames``</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">-gs</span> <span class="pre">S,</span> <span class="pre">--group_by_separator</span> <span class="pre">S</span></code></dt>
+<dd>specify filename separator character to define groups</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-gi</span> <span class="pre">[I</span> <span class="pre">[I</span> <span class="pre">...]],</span> <span class="pre">--group_by_indices</span> <span class="pre">[I</span> <span class="pre">[I</span> <span class="pre">...]]</span></code></dt>
+<dd>specify the indices of the split filenames to define a group</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">-gmean,</span> <span class="pre">--group_mean</span></code>  calculate group means and append to group figures</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">-gmedian,</span> <span class="pre">--group_median</span></code></dt>
+<dd>calculate group median and append to group figures</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">-gstd,</span> <span class="pre">--group_std</span></code>    calculate group standard deviation and append to group figures</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">-fstd</span> <span class="pre">wl0</span> <span class="pre">wl1</span> <span class="pre">n_std</span> <span class="pre">[wl0</span> <span class="pre">wl1</span> <span class="pre">n_std</span> <span class="pre">...],</span> <span class="pre">--filter_std</span> <span class="pre">wl0</span> <span class="pre">wl1</span> <span class="pre">n_std</span> <span class="pre">[wl0</span> <span class="pre">wl1</span> <span class="pre">n_std</span> <span class="pre">...]</span></code></dt>
+<dd>Remove spectra from dataset with a pct_reflect over n_std
+away from the mean between wavelengths wl0 and wl1.
+Can specify multiple sets of wavenumber ranges and thresholds</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-fthresh</span> <span class="pre">wl0</span> <span class="pre">wl1</span> <span class="pre">LO</span> <span class="pre">HI</span> <span class="pre">[wl0</span> <span class="pre">wl1</span> <span class="pre">LO</span> <span class="pre">HI</span> <span class="pre">...],</span> <span class="pre">--filter_threshold</span> <span class="pre">wl0</span> <span class="pre">wl1</span> <span class="pre">LO</span> <span class="pre">HI</span> <span class="pre">[wl0</span> <span class="pre">wl1</span> <span class="pre">LO</span> <span class="pre">HI</span> <span class="pre">...]</span></code></dt>
+<dd>Remove spectra from the dataset with a pct_reflect outside
+(LO,HI)in the wavenumber range wl0 wl1. Can specify multiple
+sets of wavenumber ranges and thresholds</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-fwhite,</span> <span class="pre">--filter_white</span></code></dt>
+<dd>Remove white reference spectra from dataset</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-fg</span> <span class="pre">method,</span> <span class="pre">--filter_group</span> <span class="pre">method</span></code></dt>
+<dd>How to combine the wavelengths selected by –filter_group.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-fo</span> <span class="pre">set,</span> <span class="pre">--filter_on</span> <span class="pre">set</span></code></dt>
+<dd>What subset of the data to apply filter on (collection, group or both)</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">-yl</span> <span class="pre">ymin</span> <span class="pre">ymax,</span> <span class="pre">--ylim</span> <span class="pre">ymin</span> <span class="pre">ymax</span></code></dt>
+<dd>Force the y axis of plots to display between ymin and ymax</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">-q,</span> <span class="pre">--quiet</span></code></p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--force</span></code>           if output path exists, remove previous output and run</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>For a description of all command line arguments: <code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span> <span class="pre">--help</span></code>.</p>
+<p>To produce an individual plot and textfile for every spectrum file
+in directory <code class="docutils literal notranslate"><span class="pre">/path/to/spectra/</span></code> and store the results in <code class="docutils literal notranslate"><span class="pre">specdal_output/</span></code>:
+<code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span>&#160; <span class="pre">-o</span> <span class="pre">specdal_output</span> <span class="pre">/path/to/spectra/</span></code></p>
+<p>To only output whole-dataset images and files:
+<code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span>&#160; <span class="pre">-oi</span> <span class="pre">-o</span> <span class="pre">specdal_output</span> <span class="pre">/path/to/spectra/</span></code></p>
+<p>To only output images, with no data files:
+<code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span>&#160; <span class="pre">-od</span> <span class="pre">-o</span> <span class="pre">specdal_output</span> <span class="pre">/path/to/spectra/</span></code></p>
+<p>To group input files by the first 3 underscore-separated components
+of their filename (such that <code class="docutils literal notranslate"><span class="pre">foo_bar_baz_001.asd</span></code> and
+<code class="docutils literal notranslate"><span class="pre">foo_bar_baz_002.asd</span></code> will appear in one group, and
+<code class="docutils literal notranslate"><span class="pre">foo_bar_qux_001.asd</span></code> in another):
+<code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span> <span class="pre">-g</span> <span class="pre">-gi</span> <span class="pre">0</span> <span class="pre">1</span> <span class="pre">2</span> <span class="pre">--</span> <span class="pre">/path/to/spectra/</span></code></p>
+<p>To also output the mean and median of every group of spectra:
+<code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span> <span class="pre">-g</span> <span class="pre">-gi</span> <span class="pre">0</span> <span class="pre">1</span> <span class="pre">2</span>&#160; <span class="pre">-gmean</span> <span class="pre">-gmedian</span> <span class="pre">/path/to/spectra/</span></code></p>
+<p>To remove all white reference spectra from the output dataset (leaves input files intact):
+<code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span> <span class="pre">--filter_white</span> <span class="pre">/path/to/spectra/</span></code></p>
+</div>
+<div class="section" id="filtering-wip">
+<h2>Filtering (WIP)<a class="headerlink" href="#filtering-wip" title="Permalink to this headline">¶</a></h2>
+<p>specdal_pipeline also provides the option to automatically filter spectra out of
+the dataset. This feature is not fully tested and may cause issues.</p>
+<p>To remove all  spectra
+with a 750-1200 nm reflectance that is greater than 1 standard deviation from the mean,
+or with a 500-600 nm reflectance that is greater than 2 standard devations from the mean:</p>
+<p><code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span> <span class="pre">--filter_std</span> <span class="pre">750</span> <span class="pre">1200</span> <span class="pre">1</span> <span class="pre">500</span> <span class="pre">600</span> <span class="pre">2</span>&#160; <span class="pre">--</span> <span class="pre">/path/to/spectra/</span></code></p>
+<p>To perform the filtering above, and then group the remaining spectra by filename:</p>
+<p><code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span> <span class="pre">--filter_std</span> <span class="pre">750</span> <span class="pre">1200</span> <span class="pre">1</span> <span class="pre">500</span> <span class="pre">600</span> <span class="pre">2</span>
+<span class="pre">-g</span> <span class="pre">-gi</span> <span class="pre">0</span> <span class="pre">1</span> <span class="pre">2</span> <span class="pre">/path/to/spectra/</span></code></p>
+<p>To group the spectra by filename, and then perform filtering on each group:</p>
+<p><code class="docutils literal notranslate"><span class="pre">specdal_pipeline</span> <span class="pre">--filter_std</span> <span class="pre">750</span> <span class="pre">1200</span> <span class="pre">1</span> <span class="pre">500</span> <span class="pre">600</span> <span class="pre">2</span>
+<span class="pre">-g</span> <span class="pre">-gi</span> <span class="pre">0</span> <span class="pre">1</span> <span class="pre">2</span>&#160; <span class="pre">--filter_on</span> <span class="pre">group</span> <span class="pre">/path/to/spectra/</span></code></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="previous chapter">API Reference</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="specdal_info.html"
+                        title="next chapter">Specdal Info Script</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="specdal_info.html" title="Specdal Info Script"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API Reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">specdal 2.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Young Lee.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

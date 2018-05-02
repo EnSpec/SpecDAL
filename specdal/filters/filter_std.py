@@ -1,9 +1,34 @@
 from .split_good_bad import split_good_bad
 
 def filter_std(collection,wavelength0,wavelength1,std_thresh,group='mean'):
-    """Filter the spectra from collection who have a mean std that is greater
-    than std_thresh times the mean std between wavelength0 and wavelength1
-    group can be mean, median, max, min. min <-> all, max <-> any
+    """Filter the spectra from collection that have a standard deviation
+    outside a certain threshold.
+
+    Parameters
+    ----------
+    collection: specdal.containers.collection.Collection
+        the collection to filter
+   
+    wavelength0: float
+        the starting wavelength to filter
+
+    wavelength1: float
+        the ending wavelength to filter 
+
+    std_thresh: float
+        remove spectra outside of std_thresh standard deviations from the mean
+
+    group: string
+        if there are multiple data points between wavelength0 and wavelength1, 
+        average them this way. Options: "mean", "median", "min", "max"
+
+    Returns
+    -------
+    good: specdal.containers.Collection
+        A new collection made of the spectra that passed the filter
+
+    bad: specdal.containers.Collection
+        A new collection made of the spectra that failed the filter
     """
     #extract the relevant wavelength range
     data = collection.data.loc[wavelength0:wavelength1]

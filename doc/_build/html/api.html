@@ -1,0 +1,538 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>API Reference &#8212; specdal 2.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Specdal Pipeline Script" href="specdal_pipeline.html" />
+    <link rel="prev" title="Data Model" href="data_model.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="specdal_pipeline.html" title="Specdal Pipeline Script"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="data_model.html" title="Data Model"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">specdal 2.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<p>This is the class and function reference page of SpecDAL.</p>
+<div class="section" id="module-specdal.containers.spectrum">
+<span id="spectrum"></span><h2>Spectrum<a class="headerlink" href="#module-specdal.containers.spectrum" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="specdal.containers.spectrum.Spectrum">
+<em class="property">class </em><code class="descclassname">specdal.containers.spectrum.</code><code class="descname">Spectrum</code><span class="sig-paren">(</span><em>name=None</em>, <em>filepath=None</em>, <em>measurement=None</em>, <em>measure_type='pct_reflect'</em>, <em>metadata=None</em>, <em>interpolated=False</em>, <em>stitched=False</em>, <em>jump_corrected=False</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.spectrum.Spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that represents a single spectrum</p>
+<dl class="docutils">
+<dt>name: string</dt>
+<dd>Name of the spectrum.</dd>
+<dt>filepath: string (optional)</dt>
+<dd>Path to the file to read from.</dd>
+<dt>measurement: pandas.Series</dt>
+<dd>Spectral measurement</dd>
+<dt>metadata: OrderedDict</dt>
+<dd>Metadata associated with spectrum</dd>
+</dl>
+<p>Spectrum object stores a single spectral measurement using
+pandas.Series with index named: “wavelength”.</p>
+<dl class="method">
+<dt id="specdal.containers.spectrum.Spectrum.get_pct_reflect">
+<code class="descname">get_pct_reflect</code><span class="sig-paren">(</span><em>dataframe</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.spectrum.Spectrum.get_pct_reflect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to calculate pct_reflect from other columns</p>
+<p>pd.Series object for pct_reflect</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.spectrum.Spectrum.interpolate">
+<code class="descname">interpolate</code><span class="sig-paren">(</span><em>spacing=1</em>, <em>method='slinear'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.spectrum.Spectrum.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.spectrum.Spectrum.jump_correct">
+<code class="descname">jump_correct</code><span class="sig-paren">(</span><em>splices</em>, <em>reference</em>, <em>method='additive'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.spectrum.Spectrum.jump_correct" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.spectrum.Spectrum.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>filepath</em>, <em>measure_type</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.spectrum.Spectrum.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read measurement from a file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.spectrum.Spectrum.stitch">
+<code class="descname">stitch</code><span class="sig-paren">(</span><em>method='mean'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.spectrum.Spectrum.stitch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="collection">
+<h2>Collection<a class="headerlink" href="#collection" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="specdal.containers.collection.Collection">
+<em class="property">class </em><code class="descclassname">specdal.containers.collection.</code><code class="descname">Collection</code><span class="sig-paren">(</span><em>name</em>, <em>directory=None</em>, <em>spectra=None</em>, <em>measure_type='pct_reflect'</em>, <em>metadata=None</em>, <em>flags=None</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a dataset consisting of a collection of spectra</p>
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>spectrum</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>insert spectrum to the collection</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="specdal.containers.collection.Collection.data">
+<code class="descname">data</code><a class="headerlink" href="#specdal.containers.collection.Collection.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get measurements as a Pandas.DataFrame</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.data_with_meta">
+<code class="descname">data_with_meta</code><span class="sig-paren">(</span><em>data=True</em>, <em>fields=None</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.data_with_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get dataframe with additional columns for metadata fields</p>
+<dl class="docutils">
+<dt>data: boolean</dt>
+<dd>whether to return the measurement data or not</dd>
+<dt>fields: list</dt>
+<dd>names of metadata fields to include as columns.
+If None, all the metadata will be included.</dd>
+</dl>
+<p>pd.DataFrame: self.data with additional columns</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="specdal.containers.collection.Collection.flags">
+<code class="descname">flags</code><a class="headerlink" href="#specdal.containers.collection.Collection.flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dict of flags for each spectrum in the collection</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.groupby">
+<code class="descname">groupby</code><span class="sig-paren">(</span><em>separator</em>, <em>indices</em>, <em>filler=None</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.groupby" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group the spectra using a separator pattern</p>
+<dl class="docutils">
+<dt>OrderedDict consisting of specdal.Collection objects for each group</dt>
+<dd>key: group name
+value: collection object</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.interpolate">
+<code class="descname">interpolate</code><span class="sig-paren">(</span><em>spacing=1</em>, <em>method='slinear'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.jump_correct">
+<code class="descname">jump_correct</code><span class="sig-paren">(</span><em>splices</em>, <em>reference</em>, <em>method='additive'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.jump_correct" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.max">
+<code class="descname">max</code><span class="sig-paren">(</span><em>append=False</em>, <em>ignore_flagged=True</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.max" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.mean">
+<code class="descname">mean</code><span class="sig-paren">(</span><em>append=False</em>, <em>ignore_flagged=True</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.mean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.median">
+<code class="descname">median</code><span class="sig-paren">(</span><em>append=False</em>, <em>ignore_flagged=True</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.median" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.min">
+<code class="descname">min</code><span class="sig-paren">(</span><em>append=False</em>, <em>ignore_flagged=True</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.min" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>directory, measure_type='pct_reflect', ext=['.asd', '.sed', '.sig', '.pico', '.light'], recursive=False, verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>read all files in a path matching extension</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="specdal.containers.collection.Collection.spectra">
+<code class="descname">spectra</code><a class="headerlink" href="#specdal.containers.collection.Collection.spectra" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of Spectrum objects in the collection</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.std">
+<code class="descname">std</code><span class="sig-paren">(</span><em>append=False</em>, <em>ignore_flagged=True</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.stitch">
+<code class="descname">stitch</code><span class="sig-paren">(</span><em>method='max'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.stitch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="specdal.containers.collection.Collection.to_csv">
+<code class="descname">to_csv</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.Collection.to_csv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.containers.collection.df_to_collection">
+<code class="descclassname">specdal.containers.collection.</code><code class="descname">df_to_collection</code><span class="sig-paren">(</span><em>df</em>, <em>name</em>, <em>measure_type='pct_reflect'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.containers.collection.df_to_collection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a collection from a pandas.DataFrame</p>
+<dl class="docutils">
+<dt>df: pandas.DataFrame</dt>
+<dd>Must have spectrum.name as index and metadata or wavelengths as columns</dd>
+<dt>name: string</dt>
+<dd>Name to assign to collection</dd>
+</dl>
+<p>c: specdal.Collection object</p>
+</dd></dl>
+
+</div>
+<div class="section" id="operators">
+<h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
+<p>Specdal’s operators perform on both pandas and specdal objects. In the
+following operations, pandas series and dataframes correspond to
+specdal’s spectrum and collection, respectively.</p>
+<span class="target" id="module-specdal.operators"></span><dl class="function">
+<dt id="specdal.operators.stitch">
+<code class="descclassname">specdal.operators.</code><code class="descname">stitch</code><span class="sig-paren">(</span><em>series</em>, <em>method='max'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.operators.stitch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stitch the regions with overlapping wavelength</p>
+<p>series: pandas.Series object</p>
+<dl class="docutils">
+<dt>method: string</dt>
+<dd>How to compute final value in case of overlap. “mean”,”median”,”min”, or “max”.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.operators.derivative">
+<code class="descclassname">specdal.operators.</code><code class="descname">derivative</code><span class="sig-paren">(</span><em>series</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.operators.derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the spectral derivative. Not Implemented Yet.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.operators.proximal_join">
+<code class="descclassname">specdal.operators.</code><code class="descname">proximal_join</code><span class="sig-paren">(</span><em>base_df</em>, <em>rover_df</em>, <em>on='gps_time_tgt'</em>, <em>direction='nearest'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.operators.proximal_join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform proximal join and return a new dataframe.</p>
+<dl class="docutils">
+<dt>base_df: pandas.DataFrame</dt>
+<dd>DataFrame of reference measurements</dd>
+<dt>rover_df: pandas.DataFrame</dt>
+<dd>DataFrame of target measurements</dd>
+</dl>
+<dl class="docutils">
+<dt>proximal: pandas.DataFrame object</dt>
+<dd>proximally processed dataset ( rover_df / base_df )</dd>
+</dl>
+<p>As a side-effect, the rover dataframe is sorted by the key
+Both base_df and rover_df must have the column specified by on. 
+This column must be the same type in base and rover.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.operators.jump_correct">
+<code class="descclassname">specdal.operators.</code><code class="descname">jump_correct</code><span class="sig-paren">(</span><em>series</em>, <em>splices</em>, <em>reference</em>, <em>method='additive'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.operators.jump_correct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correct for jumps in non-overlapping wavelengths</p>
+<dl class="docutils">
+<dt>splices: list</dt>
+<dd>list of wavelength values where jumps occur</dd>
+<dt>reference: int</dt>
+<dd>position of the reference band (0-based)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.operators.interpolate">
+<code class="descclassname">specdal.operators.</code><code class="descname">interpolate</code><span class="sig-paren">(</span><em>series</em>, <em>spacing=1</em>, <em>method='slinear'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.operators.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate the array into given spacing</p>
+<p>series: pandas.Series object</p>
+<dl class="docutils">
+<dt>spacing: int</dt>
+<dd>wavelength spacing to interpolate at (in nm)</dd>
+<dt>method: string</dt>
+<dd>“slinear” or “cubic”</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.operators.get_column_types">
+<code class="descclassname">specdal.operators.</code><code class="descname">get_column_types</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.operators.get_column_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple (wvl_cols, meta_cols), given a dataframe.</p>
+<p>Wavelength column is defined as columns with a numerical name (i.e. decimal).
+Everything else is considered metadata column.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="readers">
+<h2>Readers<a class="headerlink" href="#readers" title="Permalink to this headline">¶</a></h2>
+<p>Specdal’s readers parse a variety of input formats into the common
+specdal.containers.spectrum.Spectrum data type. Readers are used
+internally py Specturm and Collection when constructed with the
+filename argument, but can also be used individually.</p>
+<dl class="function">
+<dt id="specdal.readers.read">
+<code class="descclassname">specdal.readers.</code><code class="descname">read</code><span class="sig-paren">(</span><em>filepath</em>, <em>read_data=True</em>, <em>read_metadata=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.readers.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls a reader function based on the extension of the passed filename.
+.asd: read_asd
+.sig: read_sig
+.sed: read_sed
+.pico: read_pico</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.readers.asd.read_asd">
+<code class="descclassname">specdal.readers.asd.</code><code class="descname">read_asd</code><span class="sig-paren">(</span><em>filepath</em>, <em>read_data=True</em>, <em>read_metadata=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.readers.asd.read_asd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read asd file for data and metadata</p>
+<p>2-tuple of (pd.DataFrame, OrderedDict) for data, metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.readers.sig.read_sig">
+<code class="descclassname">specdal.readers.sig.</code><code class="descname">read_sig</code><span class="sig-paren">(</span><em>filepath</em>, <em>read_data=True</em>, <em>read_metadata=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.readers.sig.read_sig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read asd file for data and metadata</p>
+<p>2-tuple of (pd.DataFrame, OrderedDict) for data, metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.readers.sed.read_sed">
+<code class="descclassname">specdal.readers.sed.</code><code class="descname">read_sed</code><span class="sig-paren">(</span><em>filepath</em>, <em>read_data=True</em>, <em>read_metadata=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.readers.sed.read_sed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read sed file for data and metadata</p>
+<p>2-tuple of (pd.DataFrame, OrderedDict) for data, metadata</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.readers.pico.read_pico">
+<code class="descclassname">specdal.readers.pico.</code><code class="descname">read_pico</code><span class="sig-paren">(</span><em>filepath</em>, <em>read_data=True</em>, <em>read_metadata=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.readers.pico.read_pico" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read pico file for data and metadata</p>
+<p>2-tuple of (pd.DataFrame, OrderedDict) for data, metadata</p>
+</dd></dl>
+
+</div>
+<div class="section" id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Permalink to this headline">¶</a></h2>
+<p>Specdal’s filters operate on Collection objects, splitting
+them into “good” and “bad” spectra based on certain criteria.</p>
+<span class="target" id="module-specdal.filters"></span><dl class="function">
+<dt id="specdal.filters.filter_white">
+<code class="descclassname">specdal.filters.</code><code class="descname">filter_white</code><span class="sig-paren">(</span><em>collection</em>, <em>wavelength0=0</em>, <em>wavelength1=10000</em>, <em>group='mean'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.filters.filter_white" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter white reference spectra from collection</p>
+<dl class="docutils">
+<dt>good: specdal.containers.Collection</dt>
+<dd>A new collection made of the spectra that passed the filter</dd>
+<dt>bad: specdal.containers.Collection</dt>
+<dd>A new collection made of the spectra that failed the filter</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.filters.filter_threshold">
+<code class="descclassname">specdal.filters.</code><code class="descname">filter_threshold</code><span class="sig-paren">(</span><em>collection</em>, <em>wavelength0</em>, <em>wavelength1</em>, <em>low</em>, <em>high</em>, <em>group='mean'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.filters.filter_threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter the spectra from collection that have a value outside of
+(low,high). 
+Parameters
+———-
+collection: specdal.containers.collection.Collection</p>
+<blockquote>
+<div>the collection to filter</div></blockquote>
+<dl class="docutils">
+<dt>wavelength0: float</dt>
+<dd>the starting wavelength to filter</dd>
+<dt>wavelength1: float</dt>
+<dd>the ending wavelength to filter</dd>
+<dt>low: float</dt>
+<dd>minimum allowed value between wavelength0 and wavelength1</dd>
+<dt>high: float</dt>
+<dd>maximum allowed value between wavelength0 and wavelength1</dd>
+<dt>group: string</dt>
+<dd>if there are multiple data points between wavelength0 and wavelength1, 
+average them this way. Options: “mean”, “median”, “min”, “max”</dd>
+</dl>
+<dl class="docutils">
+<dt>good: specdal.containers.Collection</dt>
+<dd>A new collection made of the spectra that passed the filter</dd>
+<dt>bad: specdal.containers.Collection</dt>
+<dd>A new collection made of the spectra that failed the filter</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="specdal.filters.filter_std">
+<code class="descclassname">specdal.filters.</code><code class="descname">filter_std</code><span class="sig-paren">(</span><em>collection</em>, <em>wavelength0</em>, <em>wavelength1</em>, <em>std_thresh</em>, <em>group='mean'</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.filters.filter_std" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter the spectra from collection that have a standard deviation
+outside a certain threshold.</p>
+<dl class="docutils">
+<dt>collection: specdal.containers.collection.Collection</dt>
+<dd>the collection to filter</dd>
+<dt>wavelength0: float</dt>
+<dd>the starting wavelength to filter</dd>
+<dt>wavelength1: float</dt>
+<dd>the ending wavelength to filter</dd>
+<dt>std_thresh: float</dt>
+<dd>remove spectra outside of std_thresh standard deviations from the mean</dd>
+<dt>group: string</dt>
+<dd>if there are multiple data points between wavelength0 and wavelength1, 
+average them this way. Options: “mean”, “median”, “min”, “max”</dd>
+</dl>
+<dl class="docutils">
+<dt>good: specdal.containers.Collection</dt>
+<dd>A new collection made of the spectra that passed the filter</dd>
+<dt>bad: specdal.containers.Collection</dt>
+<dd>A new collection made of the spectra that failed the filter</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="gui">
+<h2>GUI<a class="headerlink" href="#gui" title="Permalink to this headline">¶</a></h2>
+<p>Specdal provides a Tkinter-based GUI for plotting and manually
+flagging spectra from Collections.</p>
+<span class="target" id="module-specdal.gui.viewer"></span><dl class="class">
+<dt id="specdal.gui.viewer.ColorPickerDialog">
+<em class="property">class </em><code class="descclassname">specdal.gui.viewer.</code><code class="descname">ColorPickerDialog</code><span class="sig-paren">(</span><em>parent</em>, <em>start_color=(0</em>, <em>0</em>, <em>0)</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.ColorPickerDialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="specdal.gui.viewer.PlotConfigDialog">
+<em class="property">class </em><code class="descclassname">specdal.gui.viewer.</code><code class="descname">PlotConfigDialog</code><span class="sig-paren">(</span><em>parent</em>, <em>xlim=(0</em>, <em>1)</em>, <em>ylim=(0</em>, <em>1)</em>, <em>title=''</em>, <em>xlabel=''</em>, <em>ylabel=''</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.PlotConfigDialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="specdal.gui.viewer.ToolBar">
+<em class="property">class </em><code class="descclassname">specdal.gui.viewer.</code><code class="descname">ToolBar</code><span class="sig-paren">(</span><em>canvas_</em>, <em>parent</em>, <em>ax</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.ToolBar" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="specdal.gui.viewer.ToolBar.home">
+<code class="descname">home</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.ToolBar.home" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override home method to return to home of most recent plot</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="specdal.gui.viewer.Viewer">
+<em class="property">class </em><code class="descclassname">specdal.gui.viewer.</code><code class="descname">Viewer</code><span class="sig-paren">(</span><em>parent</em>, <em>collection=None</em>, <em>with_toolbar=True</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.Viewer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="specdal.gui.viewer.Viewer.jump_correct">
+<code class="descname">jump_correct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.Viewer.jump_correct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only performs jump correction on 1000 and 1800 wvls and 1 reference</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.gui.viewer.Viewer.save_flag">
+<code class="descname">save_flag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.Viewer.save_flag" title="Permalink to this definition">¶</a></dt>
+<dd><p>save flag to self.flag_filepath</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.gui.viewer.Viewer.save_flag_as">
+<code class="descname">save_flag_as</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.Viewer.save_flag_as" title="Permalink to this definition">¶</a></dt>
+<dd><p>modify self.flag_filepath and call save_flag()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.gui.viewer.Viewer.stitch">
+<code class="descname">stitch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.Viewer.stitch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can’t stitch one spectrum and plot the collection</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.gui.viewer.Viewer.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.Viewer.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the plot</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="specdal.gui.viewer.Viewer.update_selected">
+<code class="descname">update_selected</code><span class="sig-paren">(</span><em>to_add=None</em><span class="sig-paren">)</span><a class="headerlink" href="#specdal.gui.viewer.Viewer.update_selected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update, only on flaged</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="data_model.html"
+                        title="previous chapter">Data Model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="specdal_pipeline.html"
+                        title="next chapter">Specdal Pipeline Script</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="specdal_pipeline.html" title="Specdal Pipeline Script"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="data_model.html" title="Data Model"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">specdal 2.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Young Lee.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>
