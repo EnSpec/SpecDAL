@@ -9,10 +9,12 @@ import specdal.operators as op
 from itertools import groupby
 from specdal.readers import read
 import copy
-import warnings
+import logging
 from os.path import abspath, expanduser, splitext
 import os
 
+logging.basicConfig(level=logging.WARNING,
+        format="%(levelname)s:%(name)s:%(message)s\n")
 ################################################################################
 # key functions for forming groups
 def separator_keyfun(spectrum, separator, indices):
@@ -75,6 +77,10 @@ def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
     result = None
     return_collection = False
     name = 'proximally_joined'
+    if not (all([b.interpolated for b in base.spectra]) and all(
+            [r.interpolated for r in rover.spectra])):
+        logging.warning("Proximal join should be done on datasets interpolated "
+                "to the same wavelengths.")
     if isinstance(base, Collection):
         return_collection = True
         base = base.data_with_meta(fields=[on])
@@ -143,19 +149,35 @@ class Collection(object):
     def unflag(self, spectrum_name):
         del self.flags[spectrum_name]
         
+    def _check_uniform_wavelengths(self):
+        warning =\
+"""Multiple wavelength spacings found in dataset. This may indicate input files 
+from multiple datasets are being processed simultaneously, and can cause 
+unpredictable behavior."""
+        wavelengths0 = self.spectra[0].measurement.index
+        for s in self.spectra[1:]:
+            if len(s.measurement.index) != len(wavelengths0):
+                logging.warning(warning)
+                break
+            if not (s.measurement.index == wavelengths0).all():
+                logging.warning(warning)
+                break
+
     @property
     def data(self):
         '''
         Get measurements as a Pandas.DataFrame
         '''
         try:
-            return pd.concat(objs=[s.measurement for s in self.spectra],
-                             axis=1, keys=[s.name for s in self.spectra])
-        except ValueError as err:
+            self._check_uniform_wavelengths()
+            objs = [s.measurement for s in self.spectra]
+            keys = [s.name for s in self.spectra]
+            return pd.concat(objs=objs, keys=keys, axis=1)
+        except pd.core.indexes.base.InvalidIndexError as err:
             # typically from duplicate index due to overlapping wavelengths
             if not all([s.stitched for s in self.spectra]):
-                warnings.warn('ValueError: Try after stitching the overlaps')
-            return None
+                logging.warning('{}: Try after stitching the overlaps'.format(err))
+            raise err
         except Exception as e:
             print("Unexpected exception occurred")
             raise e
@@ -165,10 +187,10 @@ class Collection(object):
             spectra = [s for s in self.spectra if not s.name in self.flags]
             return pd.concat(objs=[s.measurement for s in spectra],
                              axis=1, keys=[s.name for s in spectra])
-        except ValueError as err:
+        except (ValueError, pd.core.indexes.base.InvalidIndexError) as err:
             # typically from duplicate index due to overlapping wavelengths
             if not all([s.stitched for s in self.spectra]):
-                warnings.warn('ValueError: Try after stitching the overlaps')
+                logging.warning('{}: Try after stitching the overlaps'.format(err))
             return None
         except Exception as e:
             print("Unexpected exception occurred")

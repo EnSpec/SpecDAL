@@ -6,8 +6,11 @@ import numpy as np
 import specdal.operators as op
 from collections import OrderedDict
 from specdal.readers import read
+import logging
 import os
 
+logging.basicConfig(level=logging.WARNING,
+        format="%(levelname)s:%(name)s:%(message)s\n")
 class Spectrum(object):
     """Class that represents a single spectrum
     
@@ -123,7 +126,7 @@ class Spectrum(object):
         if pct_reflect is not None:
             pct_reflect.name = 'pct_reflect'
         else:
-            warnings.warn("Dataframe lacks columns to compute pct_reflect")
+            logging.warning("Dataframe lacks columns to compute pct_reflect.")
         return pct_reflect
     ##################################################
     # wrapper around plot function

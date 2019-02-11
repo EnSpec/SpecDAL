@@ -5,7 +5,6 @@ from argparse import RawTextHelpFormatter
 import sys
 from os.path import abspath, expanduser
 import os
-import warnings
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
