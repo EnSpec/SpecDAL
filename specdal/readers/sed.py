@@ -44,7 +44,7 @@ def read_sed(filepath, read_data=True, read_metadata=True, verbose=False):
             if len(field) > 1:
                 raw_metadata[field[0]] = field[1]
     if read_data:
-        data = pd.read_table(filepath, skiprows=i+1,
+        data = pd.read_csv(filepath, skiprows=i+1,
                              sep='\t')
         data.columns = [SED_COLUMNS[col] for col in data.columns] 
         data = data.set_index("wavelength")
