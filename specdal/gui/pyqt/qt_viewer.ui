@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>892</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SpecDAL GUI</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Plot</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <layout class="QHBoxLayout" name="plotLayout"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>Dataset</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="1" column="0">
+        <widget class="QListWidget" name="spectraList"/>
+       </item>
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLineEdit" name="lineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Select spectra by name</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Select</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>892</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="actionSave"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionPlot_Config"/>
+   </widget>
+   <widget class="QMenu" name="menuFlags">
+    <property name="title">
+     <string>Flags</string>
+    </property>
+    <addaction name="actionShow_Hide_Flagged"/>
+    <addaction name="actionShow_Hide_Flagged_2"/>
+    <addaction name="actionExport_Flags"/>
+   </widget>
+   <widget class="QMenu" name="menuOperators">
+    <property name="title">
+     <string>Operators</string>
+    </property>
+    <widget class="QMenu" name="menuPlot_Metric">
+     <property name="title">
+      <string>Plot Metric...</string>
+     </property>
+     <addaction name="actionMean_2"/>
+     <addaction name="actionMedian_2"/>
+     <addaction name="actionMaximum"/>
+     <addaction name="actionMinimum"/>
+     <addaction name="actionStandard_Deviation"/>
+    </widget>
+    <addaction name="actionStitch"/>
+    <addaction name="actionJump_Correct"/>
+    <addaction name="menuPlot_Metric"/>
+   </widget>
+   <widget class="QMenu" name="menuSelection">
+    <property name="title">
+     <string>Selection</string>
+    </property>
+    <addaction name="actionClear"/>
+    <addaction name="actionClear_Selection"/>
+    <addaction name="actionInvert_Selection"/>
+    <addaction name="actionMove_Selection_to_Top"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuFlags"/>
+   <addaction name="menuOperators"/>
+   <addaction name="menuSelection"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionPlot_Config">
+   <property name="text">
+    <string>Plot Config</string>
+   </property>
+  </action>
+  <action name="actionShow_Hide_Flagged">
+   <property name="text">
+    <string>Flag/Unflag Selection</string>
+   </property>
+  </action>
+  <action name="actionShow_Hide_Flagged_2">
+   <property name="text">
+    <string>Show/Hide Flagged</string>
+   </property>
+  </action>
+  <action name="actionExport_Flags">
+   <property name="text">
+    <string>Export Flags</string>
+   </property>
+  </action>
+  <action name="actionStitch">
+   <property name="text">
+    <string>Stitch</string>
+   </property>
+  </action>
+  <action name="actionJump_Correct">
+   <property name="text">
+    <string>Jump Correct</string>
+   </property>
+  </action>
+  <action name="actionMean">
+   <property name="text">
+    <string>Mean</string>
+   </property>
+  </action>
+  <action name="actionMedian">
+   <property name="text">
+    <string>Median</string>
+   </property>
+  </action>
+  <action name="actionMode">
+   <property name="text">
+    <string>Mode</string>
+   </property>
+  </action>
+  <action name="actionMax">
+   <property name="text">
+    <string>Max</string>
+   </property>
+  </action>
+  <action name="actionMin">
+   <property name="text">
+    <string>Min</string>
+   </property>
+  </action>
+  <action name="actionMean_2">
+   <property name="text">
+    <string>Mean</string>
+   </property>
+  </action>
+  <action name="actionMedian_2">
+   <property name="text">
+    <string>Median</string>
+   </property>
+  </action>
+  <action name="actionMaximum">
+   <property name="text">
+    <string>Maximum</string>
+   </property>
+  </action>
+  <action name="actionMinimum">
+   <property name="text">
+    <string>Minimum</string>
+   </property>
+  </action>
+  <action name="actionStandard_Deviation">
+   <property name="text">
+    <string>Standard Deviation</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Select All</string>
+   </property>
+  </action>
+  <action name="actionClear_Selection">
+   <property name="text">
+    <string>Clear Selection</string>
+   </property>
+  </action>
+  <action name="actionInvert_Selection">
+   <property name="text">
+    <string>Invert Selection</string>
+   </property>
+  </action>
+  <action name="actionMove_Selection_to_Top">
+   <property name="text">
+    <string>Move Selection to Top</string>
+   </property>
+  </action>
+  <action name="actionFilter_Selection_by_name">
+   <property name="text">
+    <string>Filter Selection by name...</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
