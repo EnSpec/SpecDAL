@@ -22,7 +22,7 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <layout class="QHBoxLayout" name="plotLayout"/>
+        <layout class="QVBoxLayout" name="plotLayout"/>
        </item>
       </layout>
      </widget>
@@ -40,7 +40,11 @@
       </property>
       <layout class="QGridLayout" name="gridLayout">
        <item row="1" column="0">
-        <widget class="QListWidget" name="spectraList"/>
+        <widget class="QListWidget" name="spectraList">
+         <property name="selectionMode">
+          <enum>QAbstractItemView::ExtendedSelection</enum>
+         </property>
+        </widget>
        </item>
        <item row="0" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_4">
