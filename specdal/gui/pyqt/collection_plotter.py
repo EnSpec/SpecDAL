@@ -21,6 +21,7 @@ class CollectionCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = fig.add_subplot(111)
+        self._flag_style = 'r'
 
         fig.tight_layout()
         FigureCanvasQTAgg.__init__(self, fig)
@@ -30,6 +31,14 @@ class CollectionCanvas(FigureCanvasQTAgg):
                                    QtWidgets.QSizePolicy.Expanding,
                                    QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
+
+    @property
+    def flag_style(self):
+        return self._flag_style
+
+    @flag_style.setter
+    def flag_style(self,value):
+        self._flag_style = value
 
     def rectangleStartEvent(self,event):
         self._rect = None
@@ -121,7 +130,10 @@ class CollectionCanvas(FigureCanvasQTAgg):
         if not isinstance(flagged_keys,set):
             flagged_keys = set(flagged_keys)
         for key in flagged_keys:
-            self.artist_dict[key].set_color('r')
+            if self.flag_style.isalpha():
+                self.artist_dict[key].set_color(self.flag_style)
+            else:
+                self.artist_dict[key].set_linestyle(self.flag_style)
         self.draw()
 
     def remove_flagged(self,unflagged_keys):
@@ -183,15 +195,24 @@ class ToolBar(NavigationToolbar2QT):
         self._ylim = ylim
 
     def _addActions(self):
-        for child in self.children():
-            print(child)
         path = os.path.split(os.path.abspath(__file__))[0]
         dir_ = os.path.join(path,"Assets")
-        def _icon_of(fname):
-            return QtGui.QIcon(os.path.join(dir_,fname))
-        load = self.addAction(QtGui.QIcon(_icon_of("icons8-opened-folder-32.png")),"Load Collection")
-        flag = self.addAction(QtGui.QIcon(_icon_of("icons8-flag-filled-32.png")),"Flag Selection")
-        unflag = self.addAction(QtGui.QIcon(_icon_of("icons8-empty-flag-32.png")),"Unflag Selection")
-        flag_vis = self.addAction(QtGui.QIcon(_icon_of("icons8-show-flag-32.png")),"Show/Hide Flags")
-        self.insertSeparator(flag)
-        flag.setToolTip("f")
+        self.icons = {}
+        def _icon_of(name,fname,description):
+            icon = QtGui.QIcon(os.path.join(dir_,fname))
+            action = self.addAction(icon,description)
+            self.icons[name] = action 
+            return action
+        _icon_of("load","icons8-opened-folder-32.png","Load Collection")
+        _icon_of("flag","icons8-flag-filled-32.png","Flag Selection")
+        _icon_of("unflag","icons8-empty-flag-32.png","Unflag Selection")
+        _icon_of("vis","icons8-show-flag-32.png","Show/Hide Flags")
+        _icon_of("export","icons8-flag-save-32.png","Export Flags")
+        _icon_of("stitch","icons8-stitch-32.png","Stitch")
+        _icon_of("jump","icons8-jump-correct-32.png","Jump Correct")
+        _icon_of("stats","icons8-normal-distribution-histogram-32.png","Plot Statistics")
+        self.insertSeparator(self.icons['flag'])
+        self.insertSeparator(self.icons['stitch'])
+
+    def triggered(self,key):
+        return self.icons[key].triggered

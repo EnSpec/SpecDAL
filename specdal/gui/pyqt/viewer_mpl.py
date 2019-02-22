@@ -23,15 +23,20 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self._set_pens()
         self._add_plot()
         self._collection = None
-        self.show_flagged = False
+        self.show_flagged = True
 
         # File Dialogs
         self.actionOpen.triggered.connect(self._open_dataset)
-        self.spectraList.itemSelectionChanged.connect(self.updateFromList)
+        self.navbar.triggered('load').connect(self._open_dataset)
 
         # Flag Dialogs
         self.actionFlag_Selection.triggered.connect(self.flagFromList)
         self.actionUnflag_Selection.triggered.connect(self.unflagFromList)
+        self.navbar.triggered('flag').connect(self.flagFromList)
+        self.navbar.triggered('unflag').connect(self.unflagFromList)
+        self.navbar.triggered('vis').connect(self.toggleFlagVisibility)
+
+        self.spectraList.itemSelectionChanged.connect(self.updateFromList)
 
     def _open_dataset(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self,
@@ -110,7 +115,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.spectraList.blockSignals(True)
         self.spectraList.clearSelection()
         for highlight in highlighted:
-            if (not (highlight in flags)) or self.show_flagged:
+            if self.show_flagged or (not (highlight in flags)):
                 pos = key_list.index(highlight)
                 self.spectraList.item(pos).setSelected(True)
         self.spectraList.blockSignals(False)
@@ -130,12 +135,22 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
     def flagFromList(self):
         for item in self.selection_items:
             item.setForeground(QtCore.Qt.red)
+        for spectrum in self.selection_text:
+            self._collection.flag(spectrum)
         self.canvas.add_flagged(self.selection_text)
 
     def unflagFromList(self):
         for item in self.selection_items:
             item.setForeground(QtCore.Qt.black)
+        for spectrum in self.selection_text:
+            if spectrum in self._collection.flags:
+                self._collection.unflag(spectrum)
         self.canvas.remove_flagged(self.selection_text)
+
+    def toggleFlagVisibility(self):
+        self.canvas.flag_style = 'r' if self.show_flagged else ' '
+        self.canvas.add_flagged(self._collection.flags)
+        self.show_flagged = not self.show_flagged
 
 def run():
     app = QtWidgets.QApplication(sys.argv)
