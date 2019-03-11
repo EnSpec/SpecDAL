@@ -2,6 +2,7 @@
 # wavelength as index and measurement as values
 import pandas as pd
 import numpy as np
+from . import interpolate
 
 def _stitch_region(series,wnum,idx,method='max'):
     #the radiances to the left of the negative step
@@ -23,6 +24,10 @@ def _stitch_region(series,wnum,idx,method='max'):
         merged = pd.concat([left_rads,right_rads],axis=1).max(axis=1)
     elif method == 'min':
         merged =  pd.concat([left_rads,right_rads],axis=1).min(axis=1)
+    elif method == 'first':
+        merged = series.iloc[left_idx]
+    elif method == 'last':
+        merged = serues.iloc[right_idx]
     else:
         raise NotImplementedError
 
@@ -45,6 +50,10 @@ def stitch(series, method='max'):
     
     """
     #find indices of overlap
+    
+    if method == 'first':
+        return stitch_by_intersect(series)
+    
     while (pd.Series(series.index).diff()[1:]<=0).any():
         wnum = pd.Series(series.index)
         wnum_step = wnum.diff()
@@ -54,3 +63,25 @@ def stitch(series, method='max'):
 
     return series
 
+def _intersection(p1, p2):
+    # interpolate the series to the same wavelength spacing
+    p1 = interpolate(p1)
+    p2 = interpolate(p2)
+    diff = p1 - p2
+    return (p1 - p2).abs().idxmin() - 1
+
+def stitch_by_intersect(series):
+    parts = []
+    if (pd.Series(series.index).diff()[1:]<=0).any():
+        wnum = pd.Series(series.index)
+        wnum_step = wnum.diff()
+        neg_idxs = [0] + list(wnum.index[wnum_step < 0]) + [None]
+        for i1, i2 in zip(neg_idxs,neg_idxs[1:]):
+            parts.append(series.iloc[i1:i2])
+        bounds = [0] + [_intersection(p1,p2) 
+                        for p1, p2 in zip(parts,parts[1:])] + [pd.np.Inf]
+        assert len(bounds) == len(parts) + 1
+        truncated_parts = []
+        for b0,b1,p in zip(bounds,bounds[1:],parts):
+            truncated_parts.append(p[(p.index >= b0) & (p.index <= b1)])
+    return pd.concat(truncated_parts)

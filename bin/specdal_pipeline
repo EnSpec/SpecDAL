@@ -45,7 +45,7 @@ parser.add_argument('-is', '--interpolate_spacing', metavar='SPC',
                     help='specify desired spacing for interpolation in nanometers\n')
 ## overlap stitcher
 parser.add_argument('-s', '--stitch', default=None,
-                    choices=['mean', 'median', 'min', 'max'],
+                    choices=['mean', 'median', 'min', 'max','first','last'],
                     help='specify overlap stitching method;\n'
                     'not necessary if data at detector edges does not overlap')
 # jump corrector
