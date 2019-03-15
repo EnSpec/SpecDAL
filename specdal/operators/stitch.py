@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from . import interpolate
 
+def _stitch_zero(series,wnum,idx,method='max'):
+    return pd.concat([series.iloc[0:idx],series.iloc[idx+1:]])
+
 def _stitch_region(series,wnum,idx,method='max'):
     #the radiances to the left of the negative step
     left_idx = wnum.loc[:idx-1][wnum.loc[:idx-1]>wnum[idx]].index
@@ -55,33 +58,44 @@ def stitch(series, method='max'):
         return stitch_by_intersect(series)
     
     while (pd.Series(series.index).diff()[1:]<=0).any():
+        # find non-positive steps in wavenumber index
         wnum = pd.Series(series.index)
         wnum_step = wnum.diff()
-        neg_idx = wnum.index[wnum_step < 0]
-        series = _stitch_region(series,wnum,neg_idx[0],method)
+        neg_idx = wnum.index[wnum_step <= 0]
+        # stitch at the first non-positive index
+        if wnum_step[neg_idx[0]] == 0:
+            series = _stitch_zero(series,wnum,neg_idx[0],method)
+        else:
+            series = _stitch_region(series,wnum,neg_idx[0],method)
     
-
+    assert (pd.Series(series.index).diff()[1:] > 0).all(), "Stitched wavenumbers not strictly increasing!"
     return series
 
 def _intersection(p1, p2):
-    # interpolate the series to the same wavelength spacing
+    """Find the intersection of two partially-overlapping series"""
     p1 = interpolate(p1)
     p2 = interpolate(p2)
     diff = p1 - p2
     return (p1 - p2).abs().idxmin() - 1
 
 def stitch_by_intersect(series):
-    parts = []
     if (pd.Series(series.index).diff()[1:]<=0).any():
+        parts = []
+        # find non-positive steps in wavenumber index
         wnum = pd.Series(series.index)
         wnum_step = wnum.diff()
-        neg_idxs = [0] + list(wnum.index[wnum_step < 0]) + [None]
+        neg_idxs = [0] + list(wnum.index[wnum_step <= 0]) + [None]
+        # chop the spectrum up into sections of increasing wavenumber
         for i1, i2 in zip(neg_idxs,neg_idxs[1:]):
             parts.append(series.iloc[i1:i2])
+        # find where sections of increasing wavenumber intersect eachother
         bounds = [0] + [_intersection(p1,p2) 
                         for p1, p2 in zip(parts,parts[1:])] + [pd.np.Inf]
         assert len(bounds) == len(parts) + 1
+        # truncate sections to the points where they intersect
         truncated_parts = []
         for b0,b1,p in zip(bounds,bounds[1:],parts):
-            truncated_parts.append(p[(p.index >= b0) & (p.index <= b1)])
-    return pd.concat(truncated_parts)
+            truncated_parts.append(p[(p.index > b0) & (p.index <= b1)])
+    series = pd.concat(truncated_parts)
+    assert (pd.Series(series.index).diff()[1:] > 0).all(), "Stitched wavenumbers not strictly increasing!"
+    return series
