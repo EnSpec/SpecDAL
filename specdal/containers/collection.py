@@ -12,6 +12,7 @@ import copy
 import logging
 from os.path import abspath, expanduser, splitext
 import os
+import sys
 
 logging.basicConfig(level=logging.WARNING,
         format="%(levelname)s:%(name)s:%(message)s\n")
@@ -77,6 +78,13 @@ def proximal_join(base, rover, on='gps_time_tgt', direction='nearest'):
     result = None
     return_collection = False
     name = 'proximally_joined'
+    # ensure that wavelength indices are monotonically increasing
+    if (pd.Series(rover.data.index).diff()[1:] <= 0).any() or \
+            (pd.Series(base.data.index).diff()[1:] <= 0).any():
+        logging.error("Cannot proximally join dataset with non-increasing"
+        " wavelengths. Try stitching.")
+        sys.exit(1)
+
     if not (all([b.interpolated for b in base.spectra]) and all(
             [r.interpolated for r in rover.spectra])):
         logging.warning("Proximal join should be done on datasets interpolated "
@@ -273,10 +281,18 @@ unpredictable behavior."""
                     # skip to next file
                     continue
                 filepath = os.path.join(dirpath, f)
-                spectrum = Spectrum(name=f_name, filepath=filepath,
-                                    measure_type=measure_type,
-                                    verbose=verbose)
-                self.append(spectrum)
+                try:
+                    spectrum = Spectrum(name=f_name, filepath=filepath,
+                                        measure_type=measure_type,
+                                        verbose=verbose)
+                    self.append(spectrum)
+                except UnicodeDecodeError:
+                    logging.warning("Input file {} contains non-unicode "
+                                    "character. Please inspect input file.".format(
+                                    f_name))
+                except KeyError:
+                    logging.warning("Input file {} missing metadata key. "
+                                    "Please inspect input file.".format(f_name))
     ##################################################
     # wrapper around spectral operations
     def interpolate(self, spacing=1, method='slinear'):
@@ -288,7 +304,11 @@ unpredictable behavior."""
         '''
 	'''
         for spectrum in self.spectra:
-            spectrum.stitch(method)
+            try:
+                spectrum.stitch(method)
+            except Exception as e:
+                logging.error("Error occurred while stitching {}".format(spectrum.name))
+                raise e
     def jump_correct(self, splices, reference, method='additive'):
         '''
 	'''
