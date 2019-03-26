@@ -10,8 +10,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
-from specdal.containers.spectrum import Spectrum
-from specdal.containers.collection import Collection
 
 class CollectionCanvas(FigureCanvasQTAgg):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
@@ -119,30 +117,35 @@ class CollectionCanvas(FigureCanvasQTAgg):
             # otherwise, unselect everything that isn't selected
             keys = self.artist_dict.keys()
             for key in keys:
+                if self.artist_dict[key].get_linestyle() == 'None':
+                    continue
                 if key in selected_keys:
                     self.artist_dict[key].set_linestyle('--')
                 else:
                     self.artist_dict[key].set_linestyle('-')
         self.draw()
 
-    def add_flagged(self,flagged_keys):
+    def add_flagged(self,flagged_keys,selected_keys=None):
         # better lookup time
         if not isinstance(flagged_keys,set):
             flagged_keys = set(flagged_keys)
+        if selected_keys is not None and not isinstance(selected_keys,set):
+            selected_keys = set(selected_keys)
         for key in flagged_keys:
-            if self.flag_style.isalpha():
+            if self.flag_style in 'rk':
                 self.artist_dict[key].set_color(self.flag_style)
+                if selected_keys is not None:
+                    style = '--' if key in selected_keys else '-'
+                    self.artist_dict[key].set_linestyle(style)
             else:
                 self.artist_dict[key].set_linestyle(self.flag_style)
         self.draw()
 
-    def remove_flagged(self,unflagged_keys):
-        # better lookup time
-        if not isinstance(unflagged_keys,set):
-            unflagged_keys = set(unflagged_keys)
-        for key in unflagged_keys:
-            self.artist_dict[key].set_color('k')
-        self.draw()
+    def remove_flagged(self,unflagged_keys,selected_keys=None):
+        old_style = self.flag_style
+        self.flag_style = 'k'
+        self.add_flagged(unflagged_keys,selected_keys)
+        self.flag_style = old_style
 
     def update_artists(self,collection,new_lim=False):
         if collection is None:
@@ -159,8 +162,7 @@ class CollectionCanvas(FigureCanvasQTAgg):
             ylim = self.ax.get_ylim()
         # plot
         self.ax.clear()
-        #flag_style = ' '
-        flag_style = 'r'
+        flag_style = self.flag_style
         flags = [s.name in collection.flags for s in collection.spectra]
         collection.plot(ax=self.ax,
                              style=list(np.where(flags, flag_style, 'k')),
@@ -194,6 +196,17 @@ class ToolBar(NavigationToolbar2QT):
         self._xlim = xlim
         self._ylim = ylim
 
+    def _rebind_save(self):
+        # find the save button from the matplotlib toolbar and rebind its action
+        # This will probably break at some point
+        actions = [child for child in self.children()
+                   if isinstance(child, QtWidgets.QAction)]
+        action = [action for action in actions if "Save" in action.toolTip()][0]
+        print(action.toolTip())
+        action.triggered.disconnect()
+        action.setToolTip("Export Dataset")
+        self.icons["save"] = action
+
     def _addActions(self):
         path = os.path.split(os.path.abspath(__file__))[0]
         dir_ = os.path.join(path,"Assets")
@@ -203,16 +216,20 @@ class ToolBar(NavigationToolbar2QT):
             action = self.addAction(icon,description)
             self.icons[name] = action 
             return action
+        self._rebind_save()
         _icon_of("load","icons8-opened-folder-32.png","Load Collection")
         _icon_of("flag","icons8-flag-filled-32.png","Flag Selection")
         _icon_of("unflag","icons8-empty-flag-32.png","Unflag Selection")
         _icon_of("vis","icons8-show-flag-32.png","Show/Hide Flags")
         _icon_of("export","icons8-flag-save-32.png","Export Flags")
+        _icon_of("operators","icons8-math-32.png","Operator Configuration")
+        _icon_of("stats","icons8-normal-distribution-histogram-32.png","Plot Statistics")
         _icon_of("stitch","icons8-stitch-32.png","Stitch")
         _icon_of("jump","icons8-jump-correct-32.png","Jump Correct")
-        _icon_of("stats","icons8-normal-distribution-histogram-32.png","Plot Statistics")
+        _icon_of("interpolate","icons8-interpolate-32.png","Interpolate")
+        _icon_of("proximal","icons8-proximal-join.png","Proximal Join")
         self.insertSeparator(self.icons['flag'])
-        self.insertSeparator(self.icons['stitch'])
+        self.insertSeparator(self.icons['operators'])
 
     def triggered(self,key):
         return self.icons[key].triggered

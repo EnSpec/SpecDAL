@@ -6,78 +6,134 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>892</width>
-    <height>600</height>
+    <width>1082</width>
+    <height>679</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>SpecDAL GUI</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="title">
-       <string>Plot</string>
+     <layout class="QHBoxLayout" name="toolbarLayout">
+      <property name="bottomMargin">
+       <number>0</number>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <layout class="QVBoxLayout" name="plotLayout"/>
-       </item>
-      </layout>
-     </widget>
+     </layout>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="title">
-       <string>Dataset</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="0">
-        <widget class="QListWidget" name="spectraList">
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Sunken</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="leftMargin">
+          <number>0</number>
          </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
-          <widget class="QLineEdit" name="lineEdit">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>Select spectra by name</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Select</string>
-           </property>
-          </widget>
+          <layout class="QVBoxLayout" name="plotLayout"/>
          </item>
         </layout>
-       </item>
-      </layout>
-     </widget>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLineEdit" name="nameSelection">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Select Spectra by Name</string>
+            </property>
+            <property name="whatsThis">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>Selection Pattern</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="selectByName">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Select</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLineEdit" name="groupName">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="placeholderText">
+             <string>Group Name</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="createGroup">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Create Group</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QListWidget" name="spectraList">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -86,7 +142,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>892</width>
+     <width>1082</width>
      <height>25</height>
     </rect>
    </property>
@@ -107,8 +163,9 @@
     <property name="title">
      <string>Flags</string>
     </property>
+    <addaction name="actionFlag_Selection"/>
+    <addaction name="actionUnflag_Selection"/>
     <addaction name="actionShow_Hide_Flagged"/>
-    <addaction name="actionShow_Hide_Flagged_2"/>
     <addaction name="actionExport_Flags"/>
    </widget>
    <widget class="QMenu" name="menuOperators">
@@ -144,7 +201,6 @@
    <addaction name="menuOperators"/>
    <addaction name="menuSelection"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
@@ -160,12 +216,12 @@
     <string>Plot Config</string>
    </property>
   </action>
-  <action name="actionShow_Hide_Flagged">
+  <action name="actionFlag_Selection">
    <property name="text">
-    <string>Flag/Unflag Selection</string>
+    <string>Flag Selection</string>
    </property>
   </action>
-  <action name="actionShow_Hide_Flagged_2">
+  <action name="actionShow_Hide_Flagged">
    <property name="text">
     <string>Show/Hide Flagged</string>
    </property>
@@ -258,6 +314,11 @@
   <action name="actionFilter_Selection_by_name">
    <property name="text">
     <string>Filter Selection by name...</string>
+   </property>
+  </action>
+  <action name="actionUnflag_Selection">
+   <property name="text">
+    <string>Unflag Selection</string>
    </property>
   </action>
  </widget>
