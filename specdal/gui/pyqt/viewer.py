@@ -4,15 +4,15 @@ import sys
 import re
 from specdal.containers.spectrum import Spectrum
 from specdal.containers.collection import Collection
-import qt_viewer_ui
-import op_config_ui
-import save_dialog_ui 
 from threading import Lock
 from queue import Queue
-from collection_plotter import CollectionCanvas, ToolBar
-from export_collection import CollectionExporter
 from collections import OrderedDict
 from contextlib import contextmanager
+from . import qt_viewer_ui
+from . import op_config_ui
+from . import save_dialog_ui 
+from .collection_plotter import CollectionCanvas, ToolBar
+from .export_collection import CollectionExporter
 
 @contextmanager
 def block_signal(widget):
