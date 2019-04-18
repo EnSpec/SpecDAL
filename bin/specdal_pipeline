@@ -50,7 +50,7 @@ parser.add_argument('-s', '--stitch', default=None,
                     'not necessary if data at detector edges does not overlap')
 
 parser.add_argument('-sr', '--stitch_reference', default=None, metavar='REF',
-                     default=None, type=int, help='specify the reference detector')
+                     type=int, help='specify the reference detector')
 # jump corrector
 parser.add_argument('-j', '--jump_correct', default=None,
                     choices=['additive'],
