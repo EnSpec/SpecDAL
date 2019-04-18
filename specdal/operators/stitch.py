@@ -40,7 +40,7 @@ def _stitch_region(series,wnum,idx,method='max'):
 
 ################################################################################
 # stitch: resolve overlaps in wavelengths
-def stitch(series, method='max'):
+def stitch(series, method='max', jump_reference=None):
     """
     Stitch the regions with overlapping wavelength
     
@@ -78,7 +78,22 @@ def _intersection(p1, p2):
     diff = p1 - p2
     return (p1 - p2).abs().idxmin() - 1
 
-def stitch_by_intersect(series):
+def _jump_correct(parts,reference_idx):
+    """Jump correct a stitch"""
+    # jump correct backwards from the reference
+    reference = parts[reference_idx]
+    for i in range(reference_idx-1,-1,-1):
+        jump = parts[i].iloc[-1] - reference.iloc[0]
+        parts[i] -= jump
+        reference = parts[i]
+    # jump correct forwards from the reference
+    reference = parts[reference_idx]
+    for i in range(reference_idx+1,len(parts)):
+        jump = parts[i].iloc[0] - reference.iloc[-1]
+        parts[i] -= jump
+        reference = parts[i]
+    
+def stitch_by_intersect(series, jump_reference=1):
     if (pd.Series(series.index).diff()[1:]<=0).any():
         parts = []
         # find non-positive steps in wavenumber index
@@ -95,7 +110,12 @@ def stitch_by_intersect(series):
         # truncate sections to the points where they intersect
         truncated_parts = []
         for b0,b1,p in zip(bounds,bounds[1:],parts):
+            p = interpolate(p)
             truncated_parts.append(p[(p.index > b0) & (p.index <= b1)])
+
+    if jump_reference is not None:
+        _jump_correct(truncated_parts,jump_reference)
+
     series = pd.concat(truncated_parts)
     assert (pd.Series(series.index).diff()[1:] > 0).all(), "Stitched wavenumbers not strictly increasing!"
     return series

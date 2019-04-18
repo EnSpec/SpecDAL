@@ -77,33 +77,41 @@ class CollectionCanvas(FigureCanvasQTAgg):
         y1 = max(self._rect_start.ydata,event.ydata)
         self.selected.emit((x0,x1,y0,y1))
 
+    def _onMouseDown(self,event):
+        if self.ax.get_navigate_mode() is None:
+            self._bg_cache = self.copy_from_bbox(self.ax.bbox)
+            self.clicked = True
+            self.rectangleStartEvent(event)
+
+    def _onMouseUp(self,event):
+        if self.ax.get_navigate_mode() is None:
+            self.restore_region(self._bg_cache)
+            self.blit(self.ax.bbox)
+            self.clicked = False
+            self.rectangleEndEvent(event)
+
+    def _onMouseMove(self,event):
+        if self.ax.get_navigate_mode() is None:
+            if(self.clicked):
+                self.restore_region(self._bg_cache)
+                self.rectangleMoveEvent(event)
+                self.blit(self.ax.bbox)
+
     def setupMouseNavigation(self):
         self.clicked = False
         self.select_mode = 'rectangle'
         self._bg_cache = None
-        def onMouseDown(event):
-            if self.ax.get_navigate_mode() is None:
-                self._bg_cache = self.copy_from_bbox(self.ax.bbox)
-                self.clicked = True
-                self.rectangleStartEvent(event)
 
-        def onMouseUp(event):
-            if self.ax.get_navigate_mode() is None:
-                self.restore_region(self._bg_cache)
-                self.blit(self.ax.bbox)
-                self.clicked = False
-                self.rectangleEndEvent(event)
+        self._cids = [
+            self.mpl_connect('button_press_event',self._onMouseDown),
+            self.mpl_connect('button_release_event',self._onMouseUp),
+            self.mpl_connect('motion_notify_event',self._onMouseMove),
+        ]
 
-        def onMouseMove(event):
-            if self.ax.get_navigate_mode() is None:
-                if(self.clicked):
-                    self.restore_region(self._bg_cache)
-                    self.rectangleMoveEvent(event)
-                    self.blit(self.ax.bbox)
+    def suspendMouseNavigation(self):
+        for cid in self._cids:
+            self.mpl_disconnect(cid)
 
-        self.mpl_connect('button_press_event',onMouseDown)
-        self.mpl_connect('button_release_event',onMouseUp)
-        self.mpl_connect('motion_notify_event',onMouseMove)
 
     def update_selected(self,selected_keys,only_add=False):
         # better lookup time

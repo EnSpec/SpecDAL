@@ -154,8 +154,22 @@ class Collection(object):
                     self._flags[v] = True
     def flag(self, spectrum_name):
         self.flags[spectrum_name] = True
+
     def unflag(self, spectrum_name):
         del self.flags[spectrum_name]
+
+    def as_flagged(self):
+        """ Return a collection with just the flagged spectra """
+        flags = set(self.flags)
+        spectra = [s for s in self.spectra if s.name in flags]
+        return Collection(self.name+'_flagged', None,
+                spectra=spectra, metadata=self.metadata, flags=self.flags)
+    def as_unflagged(self):
+        """ Return a collection with just the flagged spectra """
+        flags = set(self.flags)
+        spectra = [s for s in self.spectra if not s.name in flags]
+        return Collection(self.name+'_unflagged', None,
+                spectra=spectra, metadata=self.metadata, flags=None)
         
     def _check_uniform_wavelengths(self):
         warning =\

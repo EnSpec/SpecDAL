@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>330</width>
-    <height>330</height>
+    <height>324</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="exportData">
      <property name="title">
       <string>Export Data</string>
      </property>
@@ -24,23 +24,16 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QCheckBox" name="checkBox_2">
+       <widget class="QCheckBox" name="saveDataset">
         <property name="text">
          <string>Export Whole Dataset</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="saveIndiv">
         <property name="text">
          <string>Export Individual Spectra</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_3">
-        <property name="text">
-         <string>Export Groups</string>
         </property>
        </widget>
       </item>
@@ -48,7 +41,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="exportPlots">
      <property name="title">
       <string>Export Figures</string>
      </property>
@@ -60,27 +53,27 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QCheckBox" name="checkBox_5">
+       <widget class="QCheckBox" name="plotDataset">
         <property name="text">
          <string>Export Whole Dataset</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_6">
+       <widget class="QCheckBox" name="plotIndiv">
         <property name="text">
          <string>Export Individual Spectra</string>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_4">
-        <property name="text">
-         <string>Export Groups</string>
-        </property>
-       </widget>
-      </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="includeFlags">
+     <property name="text">
+      <string>Include Flagged Spectra</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -93,7 +86,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButton">
+      <widget class="QToolButton" name="saveDir">
        <property name="text">
         <string>Select Directory ... </string>
        </property>

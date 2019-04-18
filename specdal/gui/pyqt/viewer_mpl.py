@@ -7,7 +7,10 @@ from specdal.containers.collection import Collection
 import qt_viewer_ui
 import op_config_ui
 import save_dialog_ui 
+from threading import Lock
+from queue import Queue
 from collection_plotter import CollectionCanvas, ToolBar
+from export_collection import CollectionExporter
 from collections import OrderedDict
 from contextlib import contextmanager
 
@@ -21,6 +24,27 @@ class SaveDialog(QtWidgets.QDialog,save_dialog_ui.Ui_Dialog):
     def __init__(self,parent=None):
         super(SaveDialog,self).__init__(parent)
         self.setupUi(self)
+        self.saveDir.clicked.connect(self._ask_save_dir)
+        self.buttonBox.accepted.connect(self.ok)
+        self.result = None
+
+    def _ask_save_dir(self):
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self)
+        self.saveDir.setText(directory)
+
+    def ok(self):
+        self.result = {
+            "path":self.saveDir.text(),
+            "flags":self.includeFlags.isChecked(),
+            "data": {
+                "dataset":self.saveDataset.isChecked(),
+                "individual":self.saveIndiv.isChecked(),
+            },
+            "figures": {
+                "dataset":self.plotDataset.isChecked(),
+                "individual":self.plotIndiv.isChecked(),
+            },
+        }
 
 class OperatorConfigDialog(QtWidgets.QDialog,op_config_ui.Ui_Dialog):
     def __init__(self,op_state,parent=None, show=None):
@@ -63,6 +87,7 @@ class OperatorConfigDialog(QtWidgets.QDialog,op_config_ui.Ui_Dialog):
 
         # interpolate
         self.interpSpacing.setValue(state.interp.spacing)
+        self.interpMethod.setCurrentIndex(state.interp.mode == "cubic")
 
         # proximal join
         if state.proximal.directory:
@@ -81,9 +106,10 @@ class OperatorConfigDialog(QtWidgets.QDialog,op_config_ui.Ui_Dialog):
         state.jump.reference = self.jumpReference.value()
         # stitch
         state.stitch.mode = self.stitchMethod.currentText()
-
         # interpolate
         state.interp.spacing = self.interpSpacing.value()
+        state.interp.mode = ['slinear','cubic'][self.interpMethod.currentIndex()]
+        # proximal join
         state.proximal.directory = self.proxDir.text()
         # actions to take
         state.actions = [key for key,value in self.dialogs.items() if value.isChecked()]
@@ -100,12 +126,32 @@ class OperatorConfigDialog(QtWidgets.QDialog,op_config_ui.Ui_Dialog):
         self.state = self.make_opstate()
 
 
+class ComputeThread(QtCore.QThread):
+    done = QtCore.pyqtSignal(bool)
+    lock = Lock()
+    tQ = Queue()
+    def __init__(self,prefix,suffix):
+        super().__init__()
+        self.prefix = prefix
+        self.done.connect(suffix)
+
+    def compute(self,target,*args,**kwargs):
+        self.prefix() #prefix might not be thread safe
+        self.tQ.put((target,args,kwargs))
+
+    def run(self):
+        while True:
+            target,args,kwargs = self.tQ.get()
+            target(*args,**kwargs)
+            self.done.emit(True)
+
 class OperatorState():
     class _ProximalState():
         directory = None
 
     class _InterpState():
         spacing = 1
+        mode = "slinear"
 
     class _StitchState():
         mode = "Maximum"
@@ -152,6 +198,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.navbar.triggered('flag').connect(self.flagFromList)
         self.navbar.triggered('unflag').connect(self.unflagFromList)
         self.navbar.triggered('vis').connect(self.toggleFlagVisibility)
+        self.navbar.triggered('export').connect(self._export_flags)
         # Operators
         self.navbar.triggered('operators').connect(self.openOperatorConfig)
         self.navbar.triggered('stats').connect(
@@ -171,15 +218,35 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.nameSelection.returnPressed.connect(self.updateFromRegex)
         self.createGroup.clicked.connect(self.updateGroupNames)
         self.groupName.returnPressed.connect(self.updateGroupNames)
+        
+        # Loading icon
+        self._movie = QtGui.QMovie("Assets/ajax-loader.gif")
+        self.loadLabel.setMovie(self._movie)
+        self.loadLabel.hide()
+        self._movie.start()
+
+        #compute thread
+        self._ct = ComputeThread(self._compute_prefix,
+                self._compute_suffix)
+        self._ct.start()
 
 
+
+    def _compute_prefix(self):
+        self.loadLabel.show()
+        self.canvas.suspendMouseNavigation()
+
+    def _compute_suffix(self):
+        self.canvas.update_artists(self._collection)
+        self.canvas.setupMouseNavigation()
+        self.loadLabel.hide()
 
     def _jump_correct(self):
         if not self._collection: 
             return
-        self._collection.jump_correct(self.op_state.jump.splices, 
+        self._ct.compute(self._collection.jump_correct,
+                self.op_state.jump.splices, 
                 self.op_state.jump.reference)
-        self.canvas.update_artists(self._collection)
 
     def _stitch(self):
         if not self._collection: 
@@ -191,29 +258,44 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
             "Mean":"mean",
             "Nearest":"first"
         }[self.op_state.stitch.mode]
-        self._collection.stitch(mode)
-        self.canvas.update_artists(self._collection)
+        self._ct.compute(self._collection.stitch,mode)
 
     def _interp(self):
         if not self._collection: 
             return
         spacing = self.op_state.interp.spacing
-        self._collection.interpolate(spacing)
-        self.canvas.update_artists(self._collection)
+        method = self.op_state.interp.mode
+        self._ct.compute(self._collection.interpolate,spacing,method=method)
 
     def _proximal_join(self):
         raise NotImplemented
 
+    def _export_flags(self):
+        fname = QtWidgets.QFileDialog.getSaveFileName(self,
+                caption="Export List of Flagged Spectra",
+                filter="Supported types (*.csv, *.txt)")
+        if not fname[0]:
+            return
+        with open(fname[0],'w') as outf:
+            outf.write('\n'.join(self._collection.flags))
+            outf.write('\n')
     def _export_dataset(self):
         dialog = SaveDialog()
         if dialog.exec_() == dialog.Accepted:
-            pass
+            # need to keep a reference
+            self.exporter = CollectionExporter() 
+            self.exporter.export(self._collection,dialog.result)
+
     def _open_dataset(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self,
+                caption="Open Spectra Dataset",
                 filter="Supported types (*.asd *.sed *.sig *.pico)")
         directory = os.path.split(fname[0])[0]
-        c = Collection(name="collection", directory=directory)
-        self._set_collection(c)
+        try:
+            c = Collection(name="collection", directory=directory)
+            self._set_collection(c)
+        except:
+            pass
 
     def _set_collection(self,collection):
         self._collection = collection

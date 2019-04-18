@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 sys.path.insert(0, os.path.abspath("../.."))
@@ -20,9 +20,9 @@ from specdal.containers.collection import Collection
 from datetime import datetime
 
 
-class ToolBar(NavigationToolbar2TkAgg):
+class ToolBar(NavigationToolbar2Tk):
     def __init__(self,canvas_,parent,ax):
-        NavigationToolbar2TkAgg.__init__(self,canvas_,parent)
+        NavigationToolbar2Tk.__init__(self,canvas_,parent)
         self._xlim = (0,1)
         self._ylim = (0,1)
         self._ax = ax
@@ -882,7 +882,6 @@ def main():
     v = Viewer(root, None)
     v.update()
     root.mainloop()
-
 
 if __name__ == "__main__":
     main()

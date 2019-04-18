@@ -48,6 +48,9 @@ parser.add_argument('-s', '--stitch', default=None,
                     choices=['mean', 'median', 'min', 'max','first','last'],
                     help='specify overlap stitching method;\n'
                     'not necessary if data at detector edges does not overlap')
+
+parser.add_argument('-sr', '--stitch_reference', default=None, metavar='REF',
+                     default=None, type=int, help='specify the reference detector')
 # jump corrector
 parser.add_argument('-j', '--jump_correct', default=None,
                     choices=['additive'],
@@ -153,9 +156,9 @@ if args.proximal_reference:
 
 if args.stitch:
     print_if_verbose('Stitching...')
-    c.stitch(method=args.stitch)
+    c.stitch(method=args.stitch,jump_reference=args.stitch_reference)
     if args.proximal_reference:
-        c_base.stitch(method=args.stitch)
+        c_base.stitch(method=args.stitch,jump_reference=args.stitch_reference)
 
 if args.interpolate:
     print_if_verbose('interpolating...')

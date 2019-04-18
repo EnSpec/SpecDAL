@@ -1,4 +1,5 @@
 default:
+	pip uninstall -y specdal
 	pip install .
 
 clean:
