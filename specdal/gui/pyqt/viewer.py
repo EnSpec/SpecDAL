@@ -164,7 +164,10 @@ class ComputeThread(QtCore.QThread):
     def run(self):
         while True:
             target,args,kwargs = self.tQ.get()
-            target(*args,**kwargs)
+            try:
+                target(*args,**kwargs)
+            except Exception:
+                print("Target Failed!")
             self.done.emit(True)
 
 class OperatorState():
@@ -203,6 +206,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.setupUi(self)
         self._set_pens()
         self._add_plot()
+        self._directory = None
         self._collection = None
         self.show_flagged = True
         self.op_state = OperatorState()
@@ -237,6 +241,8 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
                 lambda:self.openOperatorConfig('interpolate'))
         self.navbar.triggered('proximal').connect(
                 lambda:self.openOperatorConfig('proximal'))
+        self.navbar.triggered('reset').connect(
+                self._restore_dataset)
 
         # Text-based selection dialog
         self.spectraList.itemSelectionChanged.connect(self.updateFromList)
@@ -307,6 +313,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         with open(fname[0],'w') as outf:
             outf.write('\n'.join(self._collection.flags))
             outf.write('\n')
+
     def _export_dataset(self):
         dialog = SaveDialog()
         if dialog.exec_() == dialog.Accepted:
@@ -314,13 +321,20 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
             self.exporter = CollectionExporter() 
             self.exporter.export(self._collection,dialog.result)
 
-    def _open_dataset(self):
-        fname = QtWidgets.QFileDialog.getOpenFileName(self,
-                caption="Open Spectra Dataset",
-                filter="Supported types (*.asd *.sed *.sig *.pico)")
-        directory = os.path.split(fname[0])[0]
+    def _restore_dataset(self):
+        """ Undo any operators applied to the current dataset """
+        # keep track of flags
+        # restore the original spectra
+        if self._directory is not None:
+            self._open_dataset(self._directory)
+
+    def _open_dataset(self,directory = None):
+        directory = directory or \
+                QtWidgets.QFileDialog.getExistingDirectory(self,
+                caption="Open Spectra Dataset")
         try:
             c = Collection(name="collection", directory=directory)
+            self._directory = directory
             self._set_collection(c)
         except:
             pass
@@ -340,6 +354,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.canvas.update_artists(self._collection)
 
     def _update_list(self):
+        self.spectraList.clear()
         for s in self._collection.spectra:
             self.spectraList.addItem(s.name)
 
@@ -380,7 +395,6 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
                 for item in self.selection_items)
 
     def updateFromBox(self,event):
-        print(event)
         if not self._collection:
             return
         x0,x1,y0,y1 = event

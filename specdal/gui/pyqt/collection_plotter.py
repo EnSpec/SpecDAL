@@ -157,6 +157,7 @@ class CollectionCanvas(FigureCanvasQTAgg):
                     style = '--' if key in selected_keys else self.unselected_style
                     self.artist_dict[key].set_linestyle(style)
             else:
+                self.artist_dict[key].set_color('r')
                 self.artist_dict[key].set_linestyle(self.flag_style)
         self.draw()
 
@@ -271,6 +272,7 @@ class ToolBar(NavigationToolbar2QT):
         _icon_of("jump","icons8-jump-correct-32.png","Jump Correct")
         _icon_of("interpolate","icons8-interpolate-32.png","Interpolate")
         _icon_of("proximal","icons8-proximal-join.png","Proximal Join")
+        _icon_of("reset","icons8-restart-32.png","Undo Operations")
         self.insertSeparator(self.icons['flag'])
         self.insertSeparator(self.icons['operators'])
 
