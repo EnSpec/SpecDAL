@@ -186,8 +186,7 @@ class CollectionCanvas(FigureCanvasQTAgg):
         unselected_style = self.unselected_style
         flags = [s.name in collection.flags for s in collection.spectra]
         collection.plot(ax=self.ax,
-                             color='k',
-                             style=list(np.where(flags, flag_style, unselected_style)),
+                             style=list(np.where(flags, flag_style, 'k')),
                              picker=1)
         #self.ax.set_title(collection.name)
 

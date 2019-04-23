@@ -268,6 +268,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
 
     def _compute_prefix(self):
         self.loadLabel.show()
+        self.spectraList.clearSelection()
         self.canvas.suspendMouseNavigation()
 
     def _compute_suffix(self):
@@ -324,9 +325,13 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
     def _restore_dataset(self):
         """ Undo any operators applied to the current dataset """
         # keep track of flags
+        flags = self._collection.flags
         # restore the original spectra
         if self._directory is not None:
             self._open_dataset(self._directory)
+        # restore flags
+        self.canvas.add_flagged(flags)
+        # restore groups
 
     def _open_dataset(self,directory = None):
         directory = directory or \
