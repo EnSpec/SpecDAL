@@ -19,7 +19,9 @@ class CollectionCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = fig.add_subplot(111)
+        self.ax.grid(True)
         self._flag_style = 'r'
+        self._unselected_style = '-'
 
         fig.tight_layout()
         FigureCanvasQTAgg.__init__(self, fig)
@@ -29,6 +31,14 @@ class CollectionCanvas(FigureCanvasQTAgg):
                                    QtWidgets.QSizePolicy.Expanding,
                                    QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
+
+    @property
+    def unselected_style(self):
+        return self._unselected_style
+
+    @unselected_style.setter
+    def unselected_style(self,value):
+        self._unselected_style = value
 
     @property
     def flag_style(self):
@@ -59,14 +69,14 @@ class CollectionCanvas(FigureCanvasQTAgg):
         self.ax.draw_artist(self._rect)
 
     def rectangleEndEvent(self,event):
+        class FakeEvent(object):
+            def __init__(self,x,y):
+                self.xdata, self.ydata = x, y
+
         if self._rect is not None:
             self._rect.remove()
         else:
             #make a small, fake rectangle
-            class FakeEvent(object):
-                def __init__(self,x,y):
-                    self.xdata, self.ydata = x, y
-
             dy = (self.ax.get_ylim()[1]-self.ax.get_ylim()[0])/100.
             self._rect_start = FakeEvent(event.xdata-10,event.ydata+dy)
             event = FakeEvent(event.xdata+10,event.ydata-dy)
@@ -125,12 +135,13 @@ class CollectionCanvas(FigureCanvasQTAgg):
             # otherwise, unselect everything that isn't selected
             keys = self.artist_dict.keys()
             for key in keys:
-                if self.artist_dict[key].get_linestyle() == 'None':
+                if self.artist_dict[key].get_linestyle() == 'None' and \
+                        self.artist_dict[key].get_color() == 'r':
                     continue
                 if key in selected_keys:
                     self.artist_dict[key].set_linestyle('--')
                 else:
-                    self.artist_dict[key].set_linestyle('-')
+                    self.artist_dict[key].set_linestyle(self.unselected_style)
         self.draw()
 
     def add_flagged(self,flagged_keys,selected_keys=None):
@@ -143,7 +154,7 @@ class CollectionCanvas(FigureCanvasQTAgg):
             if self.flag_style in 'rk':
                 self.artist_dict[key].set_color(self.flag_style)
                 if selected_keys is not None:
-                    style = '--' if key in selected_keys else '-'
+                    style = '--' if key in selected_keys else self.unselected_style
                     self.artist_dict[key].set_linestyle(style)
             else:
                 self.artist_dict[key].set_linestyle(self.flag_style)
@@ -171,17 +182,20 @@ class CollectionCanvas(FigureCanvasQTAgg):
         # plot
         self.ax.clear()
         flag_style = self.flag_style
+        unselected_style = self.unselected_style
         flags = [s.name in collection.flags for s in collection.spectra]
         collection.plot(ax=self.ax,
-                             style=list(np.where(flags, flag_style, 'k')),
+                             color='k',
+                             style=list(np.where(flags, flag_style, unselected_style)),
                              picker=1)
         #self.ax.set_title(collection.name)
 
         keys = [s.name for s in collection.spectra]
         artists = self.ax.lines
         self.artist_dict = {key:artist for key,artist in zip(keys,artists)}
-        self.colors = {key:'black' for key in keys}
+        self.colors = {key:'k' for key in keys}
         self.ax.legend().remove()
+        self.ax.grid(True)
         self.draw()
 
 class ToolBar(NavigationToolbar2QT):
@@ -207,24 +221,45 @@ class ToolBar(NavigationToolbar2QT):
     def _rebind_save(self):
         # find the save button from the matplotlib toolbar and rebind its action
         # This will probably break at some point
-        actions = [child for child in self.children()
-                   if isinstance(child, QtWidgets.QAction)]
-        action = [action for action in actions if "Save" in action.toolTip()][0]
+        action = [a for a in self.__actions if "Save" in a.toolTip()][0]
         print(action.toolTip())
         action.triggered.disconnect()
         action.setToolTip("Export Dataset")
         self.icons["save"] = action
 
+    def _update_pan_zoom(self):
+        def pan2():
+            self.icons["select"].setChecked(False)
+            self.pan()
+        def zoom2():
+            self.icons["select"].setChecked(False)
+            self.zoom()
+
+        self._actions["pan"].triggered.disconnect()
+        self._actions["pan"].triggered.connect(pan2)
+        self._actions["zoom"].triggered.disconnect()
+        self._actions["zoom"].triggered.connect(zoom2)
+
+    @property
+    def __actions(self):
+        return [child for child in self.children()
+                   if isinstance(child, QtWidgets.QAction)]
+
     def _addActions(self):
         path = os.path.split(os.path.abspath(__file__))[0]
         dir_ = os.path.join(path,"Assets")
         self.icons = {}
-        def _icon_of(name,fname,description):
+        def _icon_of(name,fname,description, idx=None):
             icon = QtGui.QIcon(os.path.join(dir_,fname))
-            action = self.addAction(icon,description)
+            if idx is None:
+                action = self.addAction(icon,description)
+            else:
+                action = QtWidgets.QAction(icon,description)
+                self.insertAction(self.__actions[idx],action)
             self.icons[name] = action 
             return action
         self._rebind_save()
+        _icon_of("select","icons8-cursor-32.png","Select spectra with left mouse",5)
         _icon_of("load","icons8-opened-folder-32.png","Load Collection")
         _icon_of("flag","icons8-flag-filled-32.png","Flag Selection")
         _icon_of("unflag","icons8-empty-flag-32.png","Unflag Selection")
@@ -239,5 +274,16 @@ class ToolBar(NavigationToolbar2QT):
         self.insertSeparator(self.icons['flag'])
         self.insertSeparator(self.icons['operators'])
 
+        self.icons["select"].setCheckable(True)
+        self._update_pan_zoom()
+
     def triggered(self,key):
         return self.icons[key].triggered
+
+    def returnToSelectMode(self):
+        if self._ax.get_navigate_mode() == 'PAN':
+            #Turn panning off
+            self.pan()
+        elif self._ax.get_navigate_mode() == 'ZOOM':
+            #Turn zooming off
+            self.zoom()

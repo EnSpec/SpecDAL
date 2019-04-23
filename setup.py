@@ -1,4 +1,4 @@
-from setuptools import setup
+from distutils.core import setup
 
 setup(name='specdal',
       version='0.2.2',
@@ -20,7 +20,8 @@ setup(name='specdal',
           'specdal.readers','specdal.containers',
           'specdal.operators','specdal.filters'],
       install_requires=['numpy', 'pandas', 'matplotlib', 'scipy','pyqt5'],
-      package_data = {'':['specdal/gui/select.png']},
+      package_data = {'':['specdal/gui/select.png'],
+                      'specdal.gui.pyqt':['Assets/*.*']},
       include_package_data = True,
       zip_safe=False,
       classifiers=[

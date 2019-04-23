@@ -14,6 +14,9 @@ from . import save_dialog_ui
 from .collection_plotter import CollectionCanvas, ToolBar
 from .export_collection import CollectionExporter
 
+PATH = os.path.split(os.path.abspath(__file__))[0]
+DIR = os.path.join(PATH,"Assets")
+
 @contextmanager
 def block_signal(widget):
     widget.blockSignals(True)
@@ -24,6 +27,7 @@ class SaveDialog(QtWidgets.QDialog,save_dialog_ui.Ui_Dialog):
     def __init__(self,parent=None):
         super(SaveDialog,self).__init__(parent)
         self.setupUi(self)
+        self.saveDir.setText(os.getcwd())
         self.saveDir.clicked.connect(self._ask_save_dir)
         self.buttonBox.accepted.connect(self.ok)
         self.result = None
@@ -62,6 +66,9 @@ class OperatorConfigDialog(QtWidgets.QDialog,op_config_ui.Ui_Dialog):
         if show:
             self.only_show(show)
 
+        self.jumpCorrectWarningLabel.hide()
+        self.verifyJumpCorrect(self.jumpSplices.text())
+        self.jumpSplices.textEdited.connect(self.verifyJumpCorrect)
         self.proxDir.clicked.connect(self._ask_proximal_dir)
         self.buttonBox.accepted.connect(self.ok)
 
@@ -92,6 +99,19 @@ class OperatorConfigDialog(QtWidgets.QDialog,op_config_ui.Ui_Dialog):
         # proximal join
         if state.proximal.directory:
             self.proxDir.setText(state.proximal.directory)
+
+
+    def verifyJumpCorrect(self,text):
+        splices = text.split(',')
+        try:
+            vals = [int(s) for s in splices]
+        except:
+            self.jumpCorrectWarningLabel.show()
+            self.buttonBox.setEnabled(False)
+        else:
+            self.jumpCorrectWarningLabel.hide()
+            self.buttonBox.setEnabled(True)
+            self.jumpReference.setMaximum(len(splices))
 
 
     def make_opstate(self):
@@ -127,6 +147,8 @@ class OperatorConfigDialog(QtWidgets.QDialog,op_config_ui.Ui_Dialog):
 
 
 class ComputeThread(QtCore.QThread):
+    """Run large computations in a background thread
+    so GUI can still run. Sort of works."""
     done = QtCore.pyqtSignal(bool)
     lock = Lock()
     tQ = Queue()
@@ -147,7 +169,7 @@ class ComputeThread(QtCore.QThread):
 
 class OperatorState():
     class _ProximalState():
-        directory = None
+        directory = os.getcwd()
 
     class _InterpState():
         spacing = 1
@@ -185,6 +207,9 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.show_flagged = True
         self.op_state = OperatorState()
 
+        # Plot Selection Mode
+        self.navbar.triggered('select').connect(self.setSelectMode)
+        self.navbar.icons['select'].setChecked(True)
         # File Dialogs
         self.actionOpen.triggered.connect(self._open_dataset)
         self.navbar.triggered('save').connect(self._export_dataset)
@@ -193,6 +218,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         # Flag Dialogs
         self.actionFlag_Selection.triggered.connect(self.flagFromList)
         self.actionUnflag_Selection.triggered.connect(self.unflagFromList)
+        self.onlyShowSelected.stateChanged.connect(self.toggleSelectedVisibility)
         # Toolbar Actions
         # Flags
         self.navbar.triggered('flag').connect(self.flagFromList)
@@ -220,7 +246,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.groupName.returnPressed.connect(self.updateGroupNames)
         
         # Loading icon
-        self._movie = QtGui.QMovie("Assets/ajax-loader.gif")
+        self._movie = QtGui.QMovie(os.path.join(DIR,"ajax-loader.gif"))
         self.loadLabel.setMovie(self._movie)
         self.loadLabel.hide()
         self._movie.start()
@@ -230,7 +256,9 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
                 self._compute_suffix)
         self._ct.start()
 
-
+    def setSelectMode(self):
+        if self.navbar.icons['select'].isChecked():
+            self.navbar.returnToSelectMode()
 
     def _compute_prefix(self):
         self.loadLabel.show()
@@ -256,7 +284,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
             "Minimum":"min",
             "Median":"median",
             "Mean":"mean",
-            "Nearest":"first"
+            "Interpolated":"first"
         }[self.op_state.stitch.mode]
         self._ct.compute(self._collection.stitch,mode)
 
@@ -352,6 +380,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
                 for item in self.selection_items)
 
     def updateFromBox(self,event):
+        print(event)
         if not self._collection:
             return
         x0,x1,y0,y1 = event
@@ -375,7 +404,9 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         with block_signal(self.spectraList):
             # don't clear selection if Ctrl is pressed
             if (QtWidgets.QApplication.keyboardModifiers() 
-                  != QtCore.Qt.ControlModifier):
+                  != QtCore.Qt.ControlModifier and 
+                QtWidgets.QApplication.keyboardModifiers() 
+                  != QtCore.Qt.ShiftModifier):
                 self.spectraList.clearSelection()
             for highlight in highlighted:
                 if self.show_flagged or (not (highlight in flags)):
@@ -419,6 +450,13 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
             if spectrum in self._collection.flags:
                 self._collection.unflag(spectrum)
         self.canvas.remove_flagged(self.selection_text)
+
+    def toggleSelectedVisibility(self,state):
+        self.show_selected = not state
+        self.canvas.unselected_style = '-' if self.show_selected else 'None'
+        print(self.canvas.unselected_style)
+        if self._collection:
+            self.canvas.update_selected(self.selection_text)
 
     def toggleFlagVisibility(self):
         self.show_flagged = not self.show_flagged

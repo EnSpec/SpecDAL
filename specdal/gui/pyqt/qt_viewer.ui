@@ -39,7 +39,7 @@
          <widget class="QFrame" name="frame">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>5</horstretch>
+            <horstretch>6</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
@@ -67,7 +67,7 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="">
+         <widget class="QWidget" name="layoutWidget">
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
             <layout class="QGridLayout" name="gridLayout">
@@ -89,7 +89,7 @@
                 <string/>
                </property>
                <property name="placeholderText">
-                <string>Selection Pattern</string>
+                <string>Select by Name</string>
                </property>
               </widget>
              </item>
@@ -114,8 +114,11 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="text">
+                <string/>
+               </property>
                <property name="placeholderText">
-                <string>Group Name</string>
+                <string>Name for Group</string>
                </property>
               </widget>
              </item>
@@ -128,11 +131,18 @@
                 </sizepolicy>
                </property>
                <property name="text">
-                <string>Create Group</string>
+                <string>Group Selection</string>
                </property>
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="onlyShowSelected">
+             <property name="text">
+              <string>Only Show Selected</string>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QListWidget" name="spectraList">
