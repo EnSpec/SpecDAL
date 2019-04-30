@@ -209,6 +209,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self._directory = None
         self._collection = None
         self.show_flagged = True
+        self.show_unselected = True
         self.op_state = OperatorState()
 
         # Plot Selection Mode
@@ -424,6 +425,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         #self.canvas.update_selected(highlighted)
         flags = set(self._collection.flags)
         with block_signal(self.spectraList):
+            old_selection = self.selection_text
             # don't clear selection if Ctrl is pressed
             if (QtWidgets.QApplication.keyboardModifiers() 
                   != QtCore.Qt.ControlModifier and 
@@ -431,9 +433,10 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
                   != QtCore.Qt.ShiftModifier):
                 self.spectraList.clearSelection()
             for highlight in highlighted:
-                if self.show_flagged or (not (highlight in flags)):
+                if self.show_flagged or not (highlight in flags):
                     pos = key_list.index(highlight)
-                    self.spectraList.item(pos).setSelected(True)
+                    if self.show_unselected or highlight in old_selection:
+                        self.spectraList.item(pos).setSelected(True)
         self.updateFromList()
 
     def updateFromRegex(self):
