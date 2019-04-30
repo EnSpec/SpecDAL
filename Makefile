@@ -1,7 +1,6 @@
 default:
 	make -C specdal/gui/pyqt
-	pip uninstall -y specdal
-	pip install .
+	python setup.py install
 
 clean:
 	pip uninstall SpecDAL

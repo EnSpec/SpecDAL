@@ -231,6 +231,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.navbar.triggered('export').connect(self._export_flags)
         # Operators
         self.navbar.triggered('operators').connect(self.openOperatorConfig)
+        # TODO: Implement statistic plotting
         self.navbar.triggered('stats').connect(
                 lambda:self.openOperatorConfig('stats'))
         self.navbar.triggered('jump').connect(
@@ -330,6 +331,8 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         if self._directory is not None:
             self._open_dataset(self._directory)
         # restore flags
+        for flag in flags:
+            self._collection.flag(flag)
         self.canvas.add_flagged(flags)
         # restore groups
 
@@ -471,15 +474,14 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.canvas.remove_flagged(self.selection_text)
 
     def toggleSelectedVisibility(self,state):
-        self.show_selected = not state
-        self.canvas.unselected_style = '-' if self.show_selected else 'None'
-        print(self.canvas.unselected_style)
+        self.show_unselected = not state
+        self.canvas.show_unselected = self.show_unselected
         if self._collection:
             self.canvas.update_selected(self.selection_text)
 
     def toggleFlagVisibility(self):
         self.show_flagged = not self.show_flagged
-        self.canvas.flag_style = 'r' if self.show_flagged else 'None'
+        self.canvas.show_flagged = self.show_flagged
         if self._collection:
             self.canvas.add_flagged(self._collection.flags,self.selection_text)
 

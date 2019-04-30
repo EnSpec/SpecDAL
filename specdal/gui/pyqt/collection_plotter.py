@@ -11,6 +11,71 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 
+def set_or_none(iterable):
+    if iterable is not None and not isinstance(iterable,set):
+        iterable = set(iterable)
+    return iterable
+
+class SpectrumArtist():
+    show_flagged = True
+    show_unselected = True
+
+    def __init__(self,artist):
+        self.artist = artist
+        self._flagged = False
+        self._selected = False
+        self._visible = True
+        self.style = '-'
+        self.color = 'k'
+
+    @property
+    def flagged(self):
+        return self._flagged
+    
+    @flagged.setter
+    def flagged(self,value):
+        self._flagged = value
+        self.color = 'r' if self._flagged else 'k'
+        self._update_look()
+
+    @property
+    def selected(self):
+        return self._selected
+    
+    @selected.setter
+    def selected(self,value):
+        self._selected = value
+        self.style = '--' if self._selected else '-'
+        self._update_look()
+    
+    @property
+    def visible(self):
+        return self._visible
+
+    @visible.setter
+    def visible(self,value):
+        self._visible = value
+        if self._visible:
+            self.artist.set_linestyle(self.style)
+        else:
+            self.artist.set_linestyle('None')
+
+    def _calculate_visibility(self):
+        visible = True
+        if not self.selected and not self.show_unselected:
+            visible = False
+        if self.flagged and not self.show_flagged:
+            visible = False
+        self.visible = visible
+
+    def _update_look(self):
+        self._calculate_visibility()
+        if self.visible:
+            self.artist.set_color(self.color)
+            self.artist.set_linestyle(self.style)
+
+            
+
 class CollectionCanvas(FigureCanvasQTAgg):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
 
@@ -32,21 +97,22 @@ class CollectionCanvas(FigureCanvasQTAgg):
                                    QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
 
+
+    @property 
+    def show_unselected(self):
+        pass
+
+    @show_unselected.setter
+    def show_unselected(self,value):
+        SpectrumArtist.show_unselected = value
+
     @property
-    def unselected_style(self):
-        return self._unselected_style
+    def show_flagged(self):
+        pass
 
-    @unselected_style.setter
-    def unselected_style(self,value):
-        self._unselected_style = value
-
-    @property
-    def flag_style(self):
-        return self._flag_style
-
-    @flag_style.setter
-    def flag_style(self,value):
-        self._flag_style = value
+    @show_flagged.setter
+    def show_flagged(self,value):
+        SpectrumArtist.show_flagged = value
 
     def rectangleStartEvent(self,event):
         self._rect = None
@@ -125,75 +191,50 @@ class CollectionCanvas(FigureCanvasQTAgg):
 
     def update_selected(self,selected_keys,only_add=False):
         # better lookup time
-        if not isinstance(selected_keys,set):
-            selected_keys = set(selected_keys)
+        selected_keys = set_or_none(selected_keys)
         if only_add:
             # if we're only adding, just select
             for key in selected_keys:
-                self.artist_dict[key].set_linestyle('--')
+                self.artist_dict[key].selected = True
         else:
             # otherwise, unselect everything that isn't selected
             keys = self.artist_dict.keys()
             for key in keys:
-                if self.artist_dict[key].get_linestyle() == 'None' and \
-                        self.artist_dict[key].get_color() == 'r':
-                    continue
-                if key in selected_keys:
-                    self.artist_dict[key].set_linestyle('--')
-                else:
-                    self.artist_dict[key].set_linestyle(self.unselected_style)
+                self.artist_dict[key].selected = key in selected_keys
         self.draw()
 
-    def add_flagged(self,flagged_keys,selected_keys=None):
+    def set_flagged(self,flagged_keys,selected_keys=None,flag=True):
         # better lookup time
-        if not isinstance(flagged_keys,set):
-            flagged_keys = set(flagged_keys)
-        if selected_keys is not None and not isinstance(selected_keys,set):
-            selected_keys = set(selected_keys)
+        flagged_keys = set_or_none(flagged_keys)
+        selected_keys = set_or_none(selected_keys)
         for key in flagged_keys:
-            if self.flag_style in 'rk':
-                self.artist_dict[key].set_color(self.flag_style)
-                if selected_keys is not None:
-                    style = '--' if key in selected_keys else self.unselected_style
-                    self.artist_dict[key].set_linestyle(style)
-            else:
-                self.artist_dict[key].set_color('r')
-                self.artist_dict[key].set_linestyle(self.flag_style)
+            self.artist_dict[key].flagged = flag
+            
         self.draw()
+
+    def add_flagged(self,unflagged_keys,selected_keys=None):
+        self.set_flagged(unflagged_keys,selected_keys,True)
 
     def remove_flagged(self,unflagged_keys,selected_keys=None):
-        old_style = self.flag_style
-        self.flag_style = 'k'
-        self.add_flagged(unflagged_keys,selected_keys)
-        self.flag_style = old_style
+        self.set_flagged(unflagged_keys,selected_keys,False)
 
     def update_artists(self,collection,new_lim=False):
         if collection is None:
             return
-        #update values being plotted -> redo statistics
-        self.mean_line = None
-        self.median_line = None
-        self.max_line = None
-        self.min_line = None
-        self.std_line = None
         # save limits
         if new_lim == False:
             xlim = self.ax.get_xlim()
             ylim = self.ax.get_ylim()
         # plot
         self.ax.clear()
-        flag_style = self.flag_style
-        unselected_style = self.unselected_style
-        flags = [s.name in collection.flags for s in collection.spectra]
-        collection.plot(ax=self.ax,
-                             style=list(np.where(flags, flag_style, 'k')),
-                             picker=1)
+        collection.plot(ax=self.ax, style='k', picker=1)
         #self.ax.set_title(collection.name)
-
         keys = [s.name for s in collection.spectra]
         artists = self.ax.lines
-        self.artist_dict = {key:artist for key,artist in zip(keys,artists)}
-        self.colors = {key:'k' for key in keys}
+        self.artist_dict = {key:SpectrumArtist(artist)
+                for key,artist in zip(keys,artists)}
+        for key in collection.flags:
+            self.artist_dict[key].flagged = True
         self.ax.legend().remove()
         self.ax.grid(True)
         self.draw()
@@ -271,7 +312,7 @@ class ToolBar(NavigationToolbar2QT):
         _icon_of("jump","icons8-jump-correct-32.png","Jump Correct")
         _icon_of("interpolate","icons8-interpolate-32.png","Interpolate")
         _icon_of("proximal","icons8-proximal-join.png","Proximal Join")
-        _icon_of("reset","icons8-restart-32.png","Undo Operations")
+        _icon_of("reset","icons8-restart-32.png","Revert Operators")
         self.insertSeparator(self.icons['flag'])
         self.insertSeparator(self.icons['operators'])
 

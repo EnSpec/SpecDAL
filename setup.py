@@ -8,6 +8,7 @@ setup(name='specdal',
           'bin/specdal_pipeline',
           'bin/specdal_info',
           'bin/specdal_gui',
+          'bin/specdalqt',
       ],
       entry_points={
           'gui_scripts': ['specdal_gui = specdal.gui.viewer:main'],
