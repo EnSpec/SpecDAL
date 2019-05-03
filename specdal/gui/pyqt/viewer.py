@@ -252,6 +252,7 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
         self.nameSelection.returnPressed.connect(self.updateFromRegex)
         self.createGroup.clicked.connect(self.updateGroupNames)
         self.groupName.returnPressed.connect(self.updateGroupNames)
+        self.groupBox.currentTextChanged.connect(self.updateFromGroup)
         
         # Loading icon
         self._movie = QtGui.QMovie(os.path.join(DIR,"ajax-loader.gif"))
@@ -439,6 +440,17 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
                         self.spectraList.item(pos).setSelected(True)
         self.updateFromList()
 
+    def updateFromGroup(self,text):
+        text = "({})".format(text)
+        print(text)
+        with block_signal(self.spectraList):
+            for i in range(self.spectraList.count()):
+                if text in self.spectraList.item(i).text():
+                    self.spectraList.item(i).setSelected(True)
+                else:
+                    self.spectraList.item(i).setSelected(False)
+        self.updateFromList(False)
+        
     def updateFromRegex(self):
         regex = self.nameSelection.text()
         with block_signal(self.spectraList):
@@ -451,14 +463,20 @@ class SpecDALViewer(QtWidgets.QMainWindow, qt_viewer_ui.Ui_MainWindow):
 
         
     def updateGroupNames(self):
-        if self.groupName.text():
-            formatter = '{{}} ({})'.format(self.groupName.text())
+        group_name = self.groupName.text()
+        if group_name:
+            formatter = '{{}} ({})'.format(group_name)
+            if self.groupBox.findText(group_name) == -1:
+                self.groupBox.addItem(group_name)
         else:
             formatter = '{}'
         for item,text in zip(self.selection_items,self.selection_text):
             item.setText(formatter.format(text))
 
-    def updateFromList(self):
+    def updateFromList(self,undo_groups=True):
+        if undo_groups:
+            with block_signal(self.groupBox):
+                self.groupBox.setCurrentIndex(0)
         self.canvas.update_selected(self.selection_text)
 
     def flagFromList(self):
