@@ -119,13 +119,16 @@ Usage with Docker
 =================
 
 Steps:
+
 - Download and save the files in the directory which has all the folders or files you want to process..
+
 - Download and install docker software from: https://www.docker.com/get-started
+
 - Run the following in terminal from directory where the Dockerfile and runDocker are stored
 
-  ``docker build -t specdal --no-cache -f Dockerfile .``
+``docker build -t specdal --no-cache -f Dockerfile .``
 
-  ``bash runDocker``
+``bash runDocker``
 
 That will take you inside the docker called 'specdal' where you can run ``specdal_pipeline`` command as shown in the example usage above. Your current directory on the laptop will get mapped to ``/home/`` in the docker.
 
