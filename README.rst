@@ -114,3 +114,19 @@ To group the spectra by filename, and then perform filtering on each group:
 
 ``specdal_pipeline --filter_white --filter_std 750 1200 1 500 600 2 
 -g -gi 0 1 2  --filter_on group /path/to/spectra/``
+
+Usage with Docker
+=================
+
+Steps:
+- Download and save the files in the directory which has all the folders or files you want to process..
+- Download and install docker software from: https://www.docker.com/get-started
+- Run the following in terminal from directory where the Dockerfile and runDocker are stored
+
+  ``docker build -t specdal --no-cache -f Dockerfile .``
+
+  ``bash runDocker``
+
+That will take you inside the docker called 'specdal' where you can run ``specdal_pipeline`` command as shown in the example usage above. Your current directory on the laptop will get mapped to ``/home/`` in the docker.
+
+Once the image is built, the next time only ``bash runDocker`` command can be run to go inside the docker. Building the image will take some time, and it will require 1.4GB space approximately.
