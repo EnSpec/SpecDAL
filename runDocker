@@ -1,0 +1,2 @@
+#!/bin/bash
+docker container run -it --rm -v ${PWD}:/home -u $(id -u ${USER}):$(id -g ${USER}) --rm specdal
