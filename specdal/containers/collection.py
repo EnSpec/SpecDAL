@@ -25,7 +25,7 @@ def separator_keyfun(spectrum, separator, indices):
 def separator_with_filler_keyfun(spectrum, separator, indices, filler='.'):
     elements = spectrum.name.split(separator)
     return separator.join([elements[i] if i in indices else
-                           fill for i in range(len(elements))])
+                           filler for i in range(len(elements))])
 
 def df_to_collection(df, name, measure_type='pct_reflect'):
     '''
@@ -206,7 +206,7 @@ unpredictable behavior."""
 
     def _unflagged_data(self):
         try:
-            spectra = [s for s in self.spectra if not s.name in self.flags]
+            spectra = [s for s in self.spectra if s.name not in self.flags]
             return pd.concat(objs=[s.measurement for s in spectra],
                              axis=1, keys=[s.name for s in spectra])
         except (ValueError, pd.core.indexes.base.InvalidIndexError) as err:
@@ -311,12 +311,12 @@ unpredictable behavior."""
     # wrapper around spectral operations
     def interpolate(self, spacing=1, method='slinear'):
         '''
-	'''
+        '''
         for spectrum in self.spectra:
             spectrum.interpolate(spacing, method)
     def stitch(self, method='max'):
         '''
-	'''
+        '''
         for spectrum in self.spectra:
             try:
                 spectrum.stitch(method)
@@ -325,7 +325,7 @@ unpredictable behavior."""
                 raise e
     def jump_correct(self, splices, reference, method='additive'):
         '''
-	'''
+        '''
         for spectrum in self.spectra:
             spectrum.jump_correct(splices, reference, method)
     ##################################################
@@ -347,7 +347,7 @@ unpredictable behavior."""
             args.append(filler)
             key_fun = separator_with_filler_keyfun
         spectra_sorted = sorted(self.spectra,
-                                  key=lambda x: key_fun(x, *args))
+                                key=lambda x: key_fun(x, *args))
         groups = groupby(spectra_sorted,
                          lambda x: key_fun(x, *args))
         result = OrderedDict()
@@ -361,7 +361,6 @@ unpredictable behavior."""
         '''
         '''
         self.data.plot(*args, **kwargs)
-        pass
     def to_csv(self, *args, **kwargs):
         '''
         '''
@@ -371,7 +370,7 @@ unpredictable behavior."""
     def mean(self, append=False, ignore_flagged=True):
         '''
         '''
-        data =  self._unflagged_data() if ignore_flagged else data
+        data = self._unflagged_data() if ignore_flagged else self.data
         spectrum = Spectrum(name=self.name + '_mean',
                             measurement=data.mean(axis=1),
                             measure_type=self.measure_type)
@@ -380,8 +379,8 @@ unpredictable behavior."""
         return spectrum
     def median(self, append=False, ignore_flagged=True):
         '''
-	'''
-        data =  self._unflagged_data() if ignore_flagged else data
+        '''
+        data = self._unflagged_data() if ignore_flagged else self.data
         spectrum = Spectrum(name=self.name + '_median',
                             measurement=data.median(axis=1),
                             measure_type=self.measure_type)
@@ -390,8 +389,8 @@ unpredictable behavior."""
         return spectrum
     def min(self, append=False, ignore_flagged=True):
         '''
-	'''
-        data =  self._unflagged_data() if ignore_flagged else data
+        '''
+        data = self._unflagged_data() if ignore_flagged else self.data
         spectrum = Spectrum(name=self.name + '_min',
                             measurement=data.min(axis=1),
                             measure_type=self.measure_type)
@@ -400,8 +399,8 @@ unpredictable behavior."""
         return spectrum
     def max(self, append=False, ignore_flagged=True):
         '''
-	'''
-        data =  self._unflagged_data() if ignore_flagged else data
+        '''
+        data = self._unflagged_data() if ignore_flagged else self.data
         spectrum = Spectrum(name=self.name + '_max',
                             measurement=data.max(axis=1),
                             measure_type=self.measure_type)
@@ -410,12 +409,11 @@ unpredictable behavior."""
         return spectrum
     def std(self, append=False, ignore_flagged=True):
         '''
-	'''
-        data =  self._unflagged_data() if ignore_flagged else data
+        '''
+        data = self._unflagged_data() if ignore_flagged else self.data
         spectrum = Spectrum(name=self.name + '_std',
                             measurement=data.std(axis=1),
                             measure_type=self.measure_type)
         if append:
             self.append(spectrum)
         return spectrum
-
