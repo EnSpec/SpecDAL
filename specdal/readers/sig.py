@@ -8,6 +8,38 @@ import glob
 from collections import OrderedDict
 import json
 
+#Convert to degrees and minutes with sign
+def extract_longitude(longitude):
+    """
+    Input: string
+    Output: float
+    """
+    degrees = float(longitude[0:3])
+    minutes = float(longitude[3:-1])/60.0
+    sign_string = longitude[-1]
+    if sign_string == 'W':
+        sign = int(-1)
+    else:
+        sign = int(1)
+    longitude_global = (degrees + minutes)*sign
+    return longitude_global
+
+def extract_latitude(latitude):
+    """
+    Input: string
+    Output: float
+    """
+    degrees = float(latitude[0:2])
+    minutes = float(latitude[2:-1])/60.0
+    sign_string = latitude[-1]
+    if sign_string == 'S':
+        sign = int(-1)
+    else:
+        sign = int(1)
+    latitude_global = (degrees + minutes)*sign
+    return latitude_global
+
+
 def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
     """
     Read asd file for data and metadata
@@ -46,7 +78,8 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
     if read_metadata:
         metadata = OrderedDict()
         metadata['file'] = f.name
-        metadata['instrument_type'] = 'SIG'
+        metadata['instrument_type'] = raw_metadata['instrument']
+        #metadata['instrument_type'] = 'SIG'
         ################################################################################
         # Average the integration times
         # TODO: check if this is valid
@@ -54,14 +87,40 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
             list(map(float, raw_metadata['integration'].split(', '))))
         ################################################################################
         metadata['measurement_type'] = raw_metadata['units'].split(', ')[0]
+        # Extract GpsTime
         try:
             metadata['gps_time_ref'], metadata['gps_time_tgt'] = tuple(
                 map(float, raw_metadata['gpstime'].replace(' ', '').split(',')))
         except:
             metadata['gps_time_tgt'] = None
             metadata['gps_time_ref'] = None
+        # Extract longitude
+        try:
+            metadata['longitude_ref'], metadata['longitude_tgt'] = tuple(
+                map(str, raw_metadata['longitude'].replace(' ', '').split(',')))
+            #Convert longitude string to float (reference and target)
+            metadata['longitude_ref'] = extract_longitude(metadata['longitude_ref'])
+            metadata['longitude_tgt'] = extract_longitude(metadata['longitude_tgt'])
+        except:
+            metadata['longitude_ref'] = None
+            metadata['longitude_tgt'] = None
+        # Extract latitude
+        try:
+            metadata['latitude_ref'], metadata['latitude_tgt'] = tuple(
+                map(str, raw_metadata['latitude'].replace(' ', '').split(',')))
+            #Convert latitude string to float (reference and target)
+            metadata['latitude_ref'] = extract_latitude(metadata['latitude_ref'])
+            metadata['latitude_tgt'] = extract_latitude(metadata['latitude_tgt'])
+        except:
+            metadata['latitude_ref'] = None
+            metadata['latitude_tgt'] = None
 
-        metadata['wavelength_range'] = None
+        #metadata['wavelength_range'] = None
+        metadata['wavelength_min'] = None
+        metadata['wavelength_max'] = None
         if read_data:
-            metadata['wavelength_range'] = (data.index.min(), data.index.max())
+            #metadata['wavelength_range'] = (data.index.min(), data.index.max())
+            metadata['wavelength_min'] = float(data.index.min())
+            metadata['wavelength_max'] = float(data.index.max())
+
     return data, metadata
