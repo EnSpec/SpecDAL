@@ -115,6 +115,14 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
             metadata['latitude_ref'] = None
             metadata['latitude_tgt'] = None
 
+        # Extract error at reference or target
+        try:
+            metadata['error_ref'] = raw_metadata['error'][0]
+            metadata['error_tgt'] = raw_metadata['error'][-1]
+        except:
+            metadata['error_ref'] = None
+            metadata['error_tgt'] = None
+
         #metadata['wavelength_range'] = None
         metadata['wavelength_min'] = None
         metadata['wavelength_max'] = None
