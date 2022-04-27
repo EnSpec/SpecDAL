@@ -77,9 +77,9 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
             data["pct_reflect"] = data["pct_reflect"]/100
     if read_metadata:
         metadata = OrderedDict()
-        metadata['file'] = f.name
+        metadata['file_path'] = f.name
+        metadata['file_name'] = f.name[-25:-4]
         metadata['instrument_type'] = raw_metadata['instrument']
-        #metadata['instrument_type'] = 'SIG'
         ################################################################################
         # Average the integration times
         # TODO: check if this is valid
@@ -87,6 +87,7 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
             list(map(float, raw_metadata['integration'].split(', '))))
         ################################################################################
         metadata['measurement_type'] = raw_metadata['units'].split(', ')[0]
+
         # Extract GpsTime
         try:
             metadata['gps_time_ref'], metadata['gps_time_tgt'] = tuple(
@@ -94,6 +95,7 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
         except:
             metadata['gps_time_tgt'] = None
             metadata['gps_time_ref'] = None
+
         # Extract longitude
         try:
             metadata['longitude_ref'], metadata['longitude_tgt'] = tuple(
@@ -104,6 +106,7 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
         except:
             metadata['longitude_ref'] = None
             metadata['longitude_tgt'] = None
+
         # Extract latitude
         try:
             metadata['latitude_ref'], metadata['latitude_tgt'] = tuple(
@@ -123,11 +126,10 @@ def read_sig(filepath, read_data=True, read_metadata=True, verbose=False):
             metadata['error_ref'] = None
             metadata['error_tgt'] = None
 
-        #metadata['wavelength_range'] = None
+        #Extract wavelength min/max ranges
         metadata['wavelength_min'] = None
         metadata['wavelength_max'] = None
         if read_data:
-            #metadata['wavelength_range'] = (data.index.min(), data.index.max())
             metadata['wavelength_min'] = float(data.index.min())
             metadata['wavelength_max'] = float(data.index.max())
 
