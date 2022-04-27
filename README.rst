@@ -1,6 +1,3 @@
-pip3 install git+https://github.com/sergiobellido/SpecDAL.git --upgrade
-
-
 Visit our `ReadTheDocs <http://specdal.readthedocs.io/en/latest/>`_.
 
 Introduction
