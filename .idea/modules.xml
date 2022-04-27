@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/SpecDAL_plus.iml" filepath="$PROJECT_DIR$/.idea/SpecDAL_plus.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../test_specdal/.idea/test_specdal.iml" filepath="$PROJECT_DIR$/../test_specdal/.idea/test_specdal.iml" />
-    </modules>
-  </component>
-</project>
