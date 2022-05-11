@@ -6,6 +6,7 @@ __pycache__*
 /*.egg-info
 *.ipynb_checkpoints*
 /_build/
-/venv
+/venv/
 .idea
+SBJ-specdal_test.py
 

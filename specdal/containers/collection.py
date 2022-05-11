@@ -107,10 +107,11 @@ class Collection(object):
     """
     Represents a dataset consisting of a collection of spectra
     """
-    def __init__(self, name, directory=None, spectra=None,
+    def __init__(self, name, directory=None, spectra=None, spectra_radiance=None,
                  measure_type='pct_reflect', metadata=None, flags=None):
         self.name = name
         self.spectra = spectra
+        self.spectra_radiance = spectra_radiance
         self.measure_type = measure_type
         self.metadata = metadata
         self.flags = flags
@@ -122,6 +123,12 @@ class Collection(object):
         A list of Spectrum objects in the collection
         """
         return list(self._spectra.values())
+    @property
+    def spectra_radiance(self):
+        """
+        A list of Spectrum objects in the collection
+        """
+        return list(self._spectra_radiance.values())
 
 
     @property
@@ -136,6 +143,23 @@ class Collection(object):
             for spectrum in value:
                 assert spectrum.name not in self._spectra
                 self._spectra[spectrum.name] = spectrum
+
+    @spectra_radiance.setter
+    def spectra_radiance(self, value):
+        self._spectra_radiance = OrderedDict()
+        if value is not None:
+            # assume value is an iterable such as list
+            for spectrum in value:
+                assert spectrum.name not in self._spectra_radiance
+                self._spectra_radiance[spectrum.name] = spectrum
+        '''# SBJ ADD THIS CODE
+        self._spectra_radiance = OrderedDict()
+        if value is not None:
+            # assume value is an iterable such as list
+            for spectrum_radiance in value:
+                assert spectrum_radiance.name not in self._spectra_radiance
+                self._spectra_radiance[spectrum_radiance.name] = spectrum_radiance'''
+
     @property
     def flags(self):
         """
@@ -204,6 +228,26 @@ unpredictable behavior."""
             print("Unexpected exception occurred")
             raise e
 
+    @property
+    def radiance(self):
+        '''
+        Get measurements as a Pandas.DataFrame
+        '''
+        try:
+            self._check_uniform_wavelengths()
+            objs = [s.measurement for s in self.spectra_radiance]
+            keys = [s.name for s in self.spectra_radiance]
+            return pd.concat(objs=objs, keys=keys, axis=1)
+        except pd.core.indexes.base.InvalidIndexError as err:
+            # typically from duplicate index due to overlapping wavelengths
+            if not all([s.stitched for s in self.spectra_radiance]):
+                logging.warning('{}: Try after stitching the overlaps'.format(err))
+            raise err
+        except Exception as e:
+            print("Unexpected exception occurred")
+            raise e
+
+
     def _unflagged_data(self):
         try:
             spectra = [s for s in self.spectra if not s.name in self.flags]
@@ -226,6 +270,15 @@ unpredictable behavior."""
         assert spectrum.name not in self._spectra
         assert isinstance(spectrum, Spectrum)
         self._spectra[spectrum.name] = spectrum
+
+
+    def append_radiance(self, spectrum_radiance):
+        """
+        insert spectrum with radiance to the collection
+        """
+        assert spectrum_radiance.name not in self._spectra_radiance
+        assert isinstance(spectrum_radiance, Spectrum)
+        self._spectra_radiance[spectrum_radiance.name] = spectrum_radiance
         
     def data_with_meta(self, data=True, fields=None):
         """
@@ -296,10 +349,17 @@ unpredictable behavior."""
                     continue
                 filepath = os.path.join(dirpath, f)
                 try:
+                    #Add reflectance spectrum
                     spectrum = Spectrum(name=f_name, filepath=filepath,
                                         measure_type=measure_type,
                                         verbose=verbose)
+
                     self.append(spectrum)
+                    #Add radiance spectrum
+                    spectrum_radiance = Spectrum(name=f_name, filepath=filepath,
+                                        measure_type='tgt_radiance',
+                                        verbose=verbose)
+                    self.append_radiance(spectrum_radiance)
                 except UnicodeDecodeError:
                     logging.warning("Input file {} contains non-unicode "
                                     "character. Please inspect input file.".format(
