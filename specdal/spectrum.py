@@ -8,8 +8,10 @@ from collections import OrderedDict
 from .reader import read
 from .utils.misc import get_pct_reflect
 import os
+from numbers import Number
+import numpy.lib.mixins
 
-class Spectrum(object):
+class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
     """Class that represents a single spectrum
     
     Parameters
@@ -121,34 +123,68 @@ class Spectrum(object):
         return pd.DataFrame(self.measurement).transpose().to_csv(
             *args, **kwargs)
     ##################################################
-    # wrapper around pandas series operators
-    def __add__(self, other):
+    # wrapper for numpy functions
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         new_measurement = None
         new_name = self.name + '+'
-        if isinstance(other, Spectrum):
-            assert self.measure_type == other.measure_type
-            new_measurement = self.measurement.__add__(other.measurement).dropna()
-            new_name += other.name
+        if method == '__call__':
+            if self.metadata is None:
+                metadata = None
+            else:
+                metadata = self.metadata
+                metadata['file'] = None
+                metadata["measurement_type"]="TRANS_TYPE"
+            new_name = ufunc.__name__+"("
+            values = []
+            for input in inputs:
+                if isinstance(input, Number):
+                    values.append(input)
+                    new_name = new_name +str(input)+", "
+                elif isinstance(input, Spectrum):
+                    values.append(input.measurement)
+                    new_name = new_name+input.name+", "
+                else:
+                    return NotImplemented
+            
+            new_name = new_name[:-2]+")"
+            if metadata is not None:
+                metadata['name'] = new_name
+            return Spectrum(name=new_name, measurement=ufunc(*values, **kwargs),metadata=metadata, measure_type = 'TRANS_TYPE')
         else:
-            new_measurement = self.measurement.__add__(other)
-        return Spectrum(name=new_name, measurement=new_measurement,
-                        measure_type=self.measure_type)
-    def __isub__(self, other):
-        pass
-    def __imul__(self, other):
-        pass
-    def __itruediv__(self, other):
-        pass
-    def __ifloordiv__(self, other):
-        pass
-    def __iiadd__(self, other):
-        pass
-    def __isub__(self, other):
-        pass
-    def __imul__(self, other):
-        pass
-    def __itruediv__(self, other):
-        pass
-    def __ifloordiv__(self, other):
-        pass
+            return NotImplemented
+    
+    # wrapper for array operations
+    def __array__(self, dtype=None):
+        return self.measurement.values
+
+    # wrapper around pandas series operators
+    # def __add__(self, other):
+    #     new_measurement = None
+    #     new_name = self.name + '+'
+    #     if isinstance(other, Spectrum):
+    #         assert self.measure_type == other.measure_type
+    #         new_measurement = self.measurement.__add__(other.measurement).dropna()
+    #         new_name += other.name
+    #     else:
+    #         new_measurement = self.measurement.__add__(other)
+    #     return Spectrum(name=new_name, measurement=new_measurement,
+    #                     measure_type=self.measure_type)
+    # def __isub__(self, other):
+    #     pass
+    # def __imul__(self, other):
+    #     pass
+    # def __itruediv__(self, other):
+    #     pass
+    # def __ifloordiv__(self, other):
+    #     pass
+    # def __iiadd__(self, other):
+    #     pass
+    # def __isub__(self, other):
+    #     pass
+    # def __imul__(self, other):
+    #     pass
+    # def __itruediv__(self, other):
+    #     pass
+    # def __ifloordiv__(self, other):
+    #     pass
     
