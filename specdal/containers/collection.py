@@ -152,13 +152,6 @@ class Collection(object):
             for spectrum in value:
                 assert spectrum.name not in self._spectra_radiance
                 self._spectra_radiance[spectrum.name] = spectrum
-        '''# SBJ ADD THIS CODE
-        self._spectra_radiance = OrderedDict()
-        if value is not None:
-            # assume value is an iterable such as list
-            for spectrum_radiance in value:
-                assert spectrum_radiance.name not in self._spectra_radiance
-                self._spectra_radiance[spectrum_radiance.name] = spectrum_radiance'''
 
     @property
     def flags(self):
@@ -372,22 +365,41 @@ unpredictable behavior."""
     def interpolate(self, spacing=1, method='slinear'):
         '''
 	'''
+        #Interpolar reflectancia
         for spectrum in self.spectra:
             spectrum.interpolate(spacing, method)
+        #Interpolar radiancia
+        for spectrum_rad in self.spectra_radiance:
+            spectrum_rad.interpolate(spacing, method)
+
     def stitch(self, method='max'):
         '''
 	'''
+        #Stitch reflectancia
         for spectrum in self.spectra:
             try:
                 spectrum.stitch(method)
             except Exception as e:
                 logging.error("Error occurred while stitching {}".format(spectrum.name))
                 raise e
+        # Stitch radiancia
+        for spectrum_rad in self.spectra_radiance:
+            try:
+                spectrum_rad.stitch(method)
+            except Exception as e:
+                logging.error("Error occurred while stitching {}".format(spectrum_rad.name))
+                print("Error occurred while stitching {}".format(spectrum_rad.name))
+
+                raise e
     def jump_correct(self, splices, reference, method='additive'):
         '''
 	'''
+        #Jump correct reflectancia
         for spectrum in self.spectra:
             spectrum.jump_correct(splices, reference, method)
+        # Jump correct radiancia
+        for spectrum_rad in self.spectra_radiance:
+            spectrum_rad.jump_correct(splices, reference, method)
     ##################################################
     # group operations
     def groupby(self, separator, indices, filler=None):
