@@ -365,39 +365,38 @@ unpredictable behavior."""
     def interpolate(self, spacing=1, method='slinear'):
         '''
 	'''
-        #Interpolar reflectancia
+        #Interpolate reflectance
         for spectrum in self.spectra:
             spectrum.interpolate(spacing, method)
-        #Interpolar radiancia
+        #Interpolate radiance
         for spectrum_rad in self.spectra_radiance:
             spectrum_rad.interpolate(spacing, method)
 
     def stitch(self, method='max'):
         '''
 	'''
-        #Stitch reflectancia
+        #Stitch reflectance
         for spectrum in self.spectra:
             try:
                 spectrum.stitch(method)
             except Exception as e:
                 logging.error("Error occurred while stitching {}".format(spectrum.name))
                 raise e
-        # Stitch radiancia
+        # Stitch radiance
         for spectrum_rad in self.spectra_radiance:
             try:
                 spectrum_rad.stitch(method)
             except Exception as e:
                 logging.error("Error occurred while stitching {}".format(spectrum_rad.name))
-                print("Error occurred while stitching {}".format(spectrum_rad.name))
 
                 raise e
     def jump_correct(self, splices, reference, method='additive'):
         '''
 	'''
-        #Jump correct reflectancia
+        #Jump correct reflectance
         for spectrum in self.spectra:
             spectrum.jump_correct(splices, reference, method)
-        # Jump correct radiancia
+        # Jump correct radiance
         for spectrum_rad in self.spectra_radiance:
             spectrum_rad.jump_correct(splices, reference, method)
     ##################################################
