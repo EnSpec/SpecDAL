@@ -2,5 +2,8 @@ __pycache__*
 *~
 *.pyc
 /dist/
+/build/
+/.vscode/
 /*.egg-info
 *.ipynb_checkpoints*
+.DS_Store

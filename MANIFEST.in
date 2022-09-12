@@ -1,0 +1,2 @@
+# we include the rsr
+include specdal/rsr/*.nc

@@ -3,6 +3,7 @@
 # pandas.Series.
 import pandas as pd
 import numpy as np
+import xarray
 import specdal.operator as op
 from collections import OrderedDict
 from .reader import read
@@ -10,6 +11,7 @@ from .utils.misc import get_pct_reflect
 import os
 from numbers import Number
 import numpy.lib.mixins
+from scipy.integrate import simps
 
 class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
     """Class that represents a single spectrum
@@ -152,10 +154,61 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
             return Spectrum(name=new_name, measurement=ufunc(*values, **kwargs),metadata=metadata, measure_type = 'TRANS_TYPE')
         else:
             return NotImplemented
-    
+
+    ##################################################
     # wrapper for array operations
     def __array__(self, dtype=None):
         return self.measurement.values
+
+    ##################################################
+    # method for computing the values for a specific satellite
+
+    def getRSR(self, satellite="aqua", sensor="modis", rsr_path=__file__.replace("/spectrum.py","/rsr/")):
+        # We build a list of available rsr
+        available_rsr = [x[:-7] for x in os.listdir(rsr_path) if x[0] != "."]
+        # Build rsr
+        if sensor == "aviris":
+            rsr_path = rsr_path+f"{sensor}_RSR.nc"
+        else:
+            rsr_path = rsr_path+f"{satellite}_{sensor}_RSR.nc"
+        # Read bands from dataframe
+        try:
+            df = xarray.open_dataset(rsr_path).to_dataframe()
+        except (FileNotFoundError, IOError):
+            print(f"Satellite-sensor combination not available. The options are {available_rsr}")
+
+        # Reshape the dataframe as needed
+        df.reset_index(inplace=True)
+        df.drop(["wavelengths"], axis=1, inplace=True)
+        #df.set_index(["bands","wavelength"], inplace=True)
+        rsr = df.pivot(index="wavelength", columns="bands")
+        rsr.columns = rsr.columns.droplevel()
+        rsr.columns.name=None
+        rsr.index.name = "Wavelength"
+        # round index to 1 decimal
+        rsr.index = rsr.index.values.round(0)
+        # We sort the dataframe
+        rsr = rsr[sorted(rsr.columns)]
+        # Remove duplicated indices and sort by index
+        rsr = rsr.groupby(level=0).sum().sort_index()
+        
+        return rsr
+
+    def getSatellite(self, satellite="aqua", sensor="modis", rsr_path = __file__.replace("/spectrum.py","/rsr/")):
+        # get relative spectral response
+        rsr = self.getRSR(satellite, sensor, rsr_path)
+        # compute reflectance by band
+        ref = rsr.mul(self.measurement, axis='index').sum(axis="index")/rsr.sum(axis="index")
+        # save to spectrum
+        name = self.name
+        spectrum = Spectrum(name=name, measurement=ref, metadata=self.metadata, measure_type=self.measure_type)
+
+        spectrum.metadata["satellite"] = satellite
+        spectrum.metadata["sensor"] = sensor
+        
+        return spectrum
+
+
 
     # wrapper around pandas series operators
     # def __add__(self, other):

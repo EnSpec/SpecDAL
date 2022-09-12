@@ -15,6 +15,7 @@ setup(name='specdal',
       author_email='ylee546@wisc.edu',
       license='MIT',
       packages=['specdal', 'specdal.utils'],
+      include_package_data=True,
       install_requires=['numpy', 'pandas', 'matplotlib', 'scipy'],
       zip_safe=False,
       classifiers=[

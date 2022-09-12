@@ -318,4 +318,22 @@ class Collection(object):
         if append:
             self.append(spectrum)
         return spectrum
+    ##################################################
+    # method for computing the values for a specific satellite
+
+    def getSatellite(self, satellite="Aqua", sensor="MODIS", rsr_path = __file__.replace("/collection.py","/rsr/")):
+        c_tmp = Collection(name=self.name, metadata={})
+        c_tmp.metadata["satellite"] = satellite
+        c_tmp.metadata["sensor"] = sensor
+        # compute reflectance by bande
+        size_compute = len(self.spectra)
+        i = 1
+        # We iterate over all spectra to compute the reflectance per band
+        for spectra_tmp in self.spectra:
+            # we print current spectra
+            print(f"Spectra {i}/{size_compute}.", end="\r")
+            c_tmp.append(spectra_tmp.getSatellite(satellite, sensor, rsr_path))
+            i+=1
+
+        return c_tmp
 
