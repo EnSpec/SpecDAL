@@ -93,14 +93,14 @@ class Collection(object):
     """
     Represents a dataset consisting of a collection of spectra
     """
-    def __init__(self, name, directory=None, spectra=None,
-                 measure_type='pct_reflect', metadata=None):
+    def __init__(self, name, directory=None, spectra=None, ext=[".asd", ".sed", ".sig"],
+                 measure_type='pct_reflect', metadata=None, reader=None):
         self.name = name
         self.spectra = spectra
         self.measure_type = measure_type
         self.metadata = metadata
         if directory:
-            self.read(directory, measure_type)
+            self.read(directory, measure_type, ext=ext, reader=reader)
     @property
     def spectra(self):
         """
@@ -187,7 +187,7 @@ class Collection(object):
     # reader
     def read(self, directory, measure_type='pct_reflect',
              ext=[".asd", ".sed", ".sig"], recursive=False,
-             verbose=False):
+             verbose=False, reader=None):
         """
         read all files in a path matching extension
         """
@@ -204,7 +204,7 @@ class Collection(object):
                 filepath = os.path.join(dirpath, f)
                 spectrum = Spectrum(name=f_name, filepath=filepath,
                                     measure_type=measure_type,
-                                    verbose=verbose)
+                                    verbose=verbose, reader=reader)
                 self.append(spectrum)
     ##################################################
     # wrapper around spectral operations

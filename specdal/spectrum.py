@@ -42,7 +42,7 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
                  measure_type='pct_reflect', metadata=None,
                  interpolated=False, stitched=False, jump_corrected=False,
                  vector_normalized=False, derivative_order=0,
-                 verbose=False):
+                 verbose=False, reader=None):
         if name is None:
             assert filepath is not None
             name = os.path.splitext(os.path.basename(filepath))[0]
@@ -56,7 +56,7 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
         self.vector_normalized = vector_normalized
         self.derivative_order = derivative_order
         if filepath:
-            self.read(filepath, measure_type, verbose=verbose)
+            self.read(filepath, measure_type, verbose=verbose, reader=reader)
     def __str__(self):
         string = "\nname:\t\t{!s},\n".format(self.name)
         string += "measure_type:\t{!s}\n".format(self.measure_type)
@@ -76,16 +76,16 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
         return string
     ##################################################
     # reader
-    def read(self, filepath, measure_type, verbose=False):
+    def read(self, filepath, measure_type, verbose=False, reader=None):
         '''
         Read measurement from a file.
         '''
-        data, meta = read(filepath, verbose=verbose)
+        data, meta = read(filepath, verbose=verbose, reader=reader)
         self.metadata = meta
         if measure_type == 'pct_reflect' and 'pct_reflect' not in data:
             self.measurement = get_pct_reflect(data)
             return
-        assert measure_type in data # TODO: handle this
+        assert measure_type in data # TODO: handle this 
         self.measurement = data[measure_type]
     ##################################################
     # wrappers around spectral operations
@@ -134,6 +134,7 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
         ''''''
         return pd.DataFrame(self.measurement).transpose().to_csv(
             *args, **kwargs)
+
     ##################################################
     # wrapper for numpy functions
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
@@ -164,6 +165,13 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
             return Spectrum(name=new_name, measurement=ufunc(*values, **kwargs),metadata=metadata, measure_type = 'TRANS_TYPE')
         else:
             return NotImplemented
+
+    ##################################################
+    # wrapper for spectral subset
+    def walevength_range(self, wlmin=350, wlmax=2500, dtype=None):
+        self.measurement = self.measurement.loc[wlmin:wlmax]
+        self.metadata[""]
+
 
     ##################################################
     # wrapper for array operations
