@@ -8,13 +8,18 @@ from os.path import abspath, expanduser, splitext
 from collections import OrderedDict
 from .utils.reader_utils import *
 
-def read(filepath, read_data=True, read_metadata=True, verbose=False):
+def read(filepath, read_data=True, read_metadata=True, verbose=False, reader=None):
     """
     Calls the appropriate reader based on file extension
     """
     SUPPORTED_READERS = {'.asd':read_asd , '.sig':read_sig , '.sed':read_sed }
-    ext = splitext(filepath)[1]
-    reader = SUPPORTED_READERS[ext]
+    # Added option to force reader
+    if reader == None:
+        ext = splitext(filepath)[1]
+        reader = SUPPORTED_READERS[ext]
+    else:
+        reader = SUPPORTED_READERS[reader]
+
     return reader(abspath(expanduser(filepath)), read_data,
                   read_metadata, verbose)
 
