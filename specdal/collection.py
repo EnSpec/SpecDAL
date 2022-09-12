@@ -337,3 +337,12 @@ class Collection(object):
 
         return c_tmp
 
+    def savgol_filter(self, window_length, polyorder, deriv=0,
+                    delta=1.0, axis=-1, mode='interp', cval=0.0):
+        self.metadata["savgol_window_length"] = window_length
+        self.metadata["savgol_polyorder"] = polyorder
+
+        # We iterate over all spectra 
+        for spectra_tmp in self.spectra:
+            spectra_tmp.savgol_filter(window_length, 
+                            polyorder, deriv, delta, axis, mode, cval)
