@@ -2,6 +2,7 @@
 # wavelength as index and measurement as values
 import pandas as pd
 import numpy as np
+from scipy.signal import savgol_filter
 from .utils.misc import get_monotonic_series
 
 ################################################################################
@@ -113,6 +114,20 @@ def vector_normalize(series):
     normalize the values such that sum(values ** 2) == 1
     '''
     return series / np.sqrt(np.sum(series ** 2))
+
+################################################################################
+# vector_normalize: divide the series such that 2-norm(series) == 1
+def savgol(series, window_length, polyorder, deriv=0,
+                        delta=1.0, axis=-1, mode='interp', cval=0.0):
+    '''
+    Savitzky-Golay filter using scipy implementation
+    '''
+    smooth = savgol_filter(series.values, 
+                        window_length, polyorder, deriv,
+                        delta, axis, mode, cval)
+    smooth = pd.Series(data=smooth, index=series.index)
+    smooth.index.name = "wavelength"
+    return smooth
 
 ################################################################################
 # DataFrame operations (collection of spectra)

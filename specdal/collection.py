@@ -93,14 +93,14 @@ class Collection(object):
     """
     Represents a dataset consisting of a collection of spectra
     """
-    def __init__(self, name, directory=None, spectra=None,
-                 measure_type='pct_reflect', metadata=None):
+    def __init__(self, name, directory=None, spectra=None, ext=[".asd", ".sed", ".sig"],
+                 measure_type='pct_reflect', metadata=None, reader=None):
         self.name = name
         self.spectra = spectra
         self.measure_type = measure_type
         self.metadata = metadata
         if directory:
-            self.read(directory, measure_type)
+            self.read(directory, measure_type, ext=ext, reader=reader)
     @property
     def spectra(self):
         """
@@ -187,7 +187,7 @@ class Collection(object):
     # reader
     def read(self, directory, measure_type='pct_reflect',
              ext=[".asd", ".sed", ".sig"], recursive=False,
-             verbose=False):
+             verbose=False, reader=None):
         """
         read all files in a path matching extension
         """
@@ -204,7 +204,7 @@ class Collection(object):
                 filepath = os.path.join(dirpath, f)
                 spectrum = Spectrum(name=f_name, filepath=filepath,
                                     measure_type=measure_type,
-                                    verbose=verbose)
+                                    verbose=verbose, reader=reader)
                 self.append(spectrum)
     ##################################################
     # wrapper around spectral operations
@@ -318,4 +318,37 @@ class Collection(object):
         if append:
             self.append(spectrum)
         return spectrum
+    ##################################################
+    # method for computing the values for a specific satellite
 
+    def getSatellite(self, satellite="Aqua", sensor="MODIS", rsr_path = __file__.replace("/collection.py","/rsr/")):
+        c_tmp = Collection(name=self.name, metadata={})
+        c_tmp.metadata["satellite"] = satellite
+        c_tmp.metadata["sensor"] = sensor
+        # compute reflectance by bande
+        size_compute = len(self.spectra)
+        i = 1
+        # We iterate over all spectra to compute the reflectance per band
+        for spectra_tmp in self.spectra:
+            # we print current spectra
+            print(f"Spectra {i}/{size_compute}.", end="\r")
+            c_tmp.append(spectra_tmp.getSatellite(satellite, sensor, rsr_path))
+            i+=1
+
+        return c_tmp
+
+    def savgol_filter(self, window_length, polyorder, deriv=0,
+                    delta=1.0, axis=-1, mode='interp', cval=0.0):
+        self.metadata["savgol_window_length"] = window_length
+        self.metadata["savgol_polyorder"] = polyorder
+
+        # We iterate over all spectra 
+        for spectra_tmp in self.spectra:
+            spectra_tmp.savgol_filter(window_length, 
+                            polyorder, deriv, delta, axis, mode, cval)
+
+    def walevength_range(self, wlmin=350, wlmax=2500, dtype=None):
+        # We iterate over all spectra 
+        for spectra_tmp in self.spectra:
+            spectra_tmp.measurement = spectra_tmp.measurement.loc[wlmin:wlmax]
+            spectra_tmp.metadata['wavelength_range'] = (wlmin, wlmax)

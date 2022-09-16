@@ -1,19 +1,25 @@
 # readers.py provides functions to read spectrum files for data and
 # metadata.
 
+import string
 import pandas as pd
 import numpy as np
 from os.path import abspath, expanduser, splitext
 from collections import OrderedDict
 from .utils.reader_utils import *
 
-def read(filepath, read_data=True, read_metadata=True, verbose=False):
+def read(filepath, read_data=True, read_metadata=True, verbose=False, reader=None):
     """
     Calls the appropriate reader based on file extension
     """
     SUPPORTED_READERS = {'.asd':read_asd , '.sig':read_sig , '.sed':read_sed }
-    ext = splitext(filepath)[1]
-    reader = SUPPORTED_READERS[ext]
+    # Added option to force reader
+    if reader == None:
+        ext = splitext(filepath)[1]
+        reader = SUPPORTED_READERS[ext]
+    else:
+        reader = SUPPORTED_READERS[reader]
+
     return reader(abspath(expanduser(filepath)), read_data,
                   read_metadata, verbose)
 
@@ -193,12 +199,24 @@ def read_asd(filepath, read_data=True, read_metadata=True, verbose=False):
             gps_flags2 = gps_struct[9:11] # unpack this into bits
             gps_satellites = gps_struct[11:16]
             gps_filler = gps_struct[16:18]
+            # date
+            time_lock = 160
+            second = int.from_bytes(binconts[160:(160 + 2)], byteorder='little')
+            minute = int.from_bytes(binconts[160+2:160+2+2], byteorder='little')
+            hour = int.from_bytes(binconts[160+4:160+4+2], byteorder='little')
+            day = int.from_bytes(binconts[160+6:160+6+2], byteorder='little')
+            month = int.from_bytes(binconts[160+8:160+8+2], byteorder='little')+1
+            year = int.from_bytes(binconts[160+10:160+10+2], byteorder='little')+1900
+            # Dark current
+            dc =  int.from_bytes(binconts[181:181+1], byteorder='little')
             # metadata
             metadata['integration_time'] = integration_time
             metadata['measurement_type'] = spectrum_type
             metadata['gps_time_tgt'] = gps_timestamp
             metadata['gps_time_ref'] = None
             metadata['wavelength_range'] = (wavestart, wavestop)
+            metadata['measurement_date'] = f"{year:04}-{month:02}-{day:02} {hour:02}:{minute:02}:{second:02}"
+            metadata['dark_current'] = dc
             # metadata['splice'] = (splice1, splice2)
             # metadata['resolution'] = wavestep
     return data, metadata
