@@ -170,7 +170,7 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
     # wrapper for spectral subset
     def walevength_range(self, wlmin=350, wlmax=2500, dtype=None):
         self.measurement = self.measurement.loc[wlmin:wlmax]
-        self.metadata[""]
+        self.metadata['wavelength_range'] = (wlmin, wlmax)
 
 
     ##################################################

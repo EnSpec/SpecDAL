@@ -346,3 +346,9 @@ class Collection(object):
         for spectra_tmp in self.spectra:
             spectra_tmp.savgol_filter(window_length, 
                             polyorder, deriv, delta, axis, mode, cval)
+
+    def walevength_range(self, wlmin=350, wlmax=2500, dtype=None):
+        # We iterate over all spectra 
+        for spectra_tmp in self.spectra:
+            spectra_tmp.measurement = spectra_tmp.measurement.loc[wlmin:wlmax]
+            spectra_tmp.metadata['wavelength_range'] = (wlmin, wlmax)
