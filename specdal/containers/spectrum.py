@@ -8,13 +8,10 @@ from collections import OrderedDict
 from specdal.readers import read
 import logging
 import os
-# libraries for extending operations
-from numbers import Number
-import numpy.lib.mixins
 
 logging.basicConfig(level=logging.WARNING,
         format="%(levelname)s:%(name)s:%(message)s\n")
-class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
+class Spectrum(object):
     """Class that represents a single spectrum
     
     Parameters
@@ -142,68 +139,33 @@ class Spectrum(numpy.lib.mixins.NDArrayOperatorsMixin):
             *args, **kwargs)
     ##################################################
     # wrapper around pandas series operators
-    # def __add__(self, other):
-    #     new_measurement = None
-    #     new_name = self.name + '+'
-    #     if isinstance(other, Spectrum):
-    #         assert self.measure_type == other.measure_type
-    #         new_measurement = self.measurement.__add__(other.measurement).dropna()
-    #         new_name += other.name
-    #     else:
-    #         new_measurement = self.measurement.__add__(other)
-    #     return Spectrum(name=new_name, measurement=new_measurement,
-    #                     measure_type=self.measure_type)
-    # Wrapper to operate with numpy functions and operations
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+    def __add__(self, other):
         new_measurement = None
         new_name = self.name + '+'
-        if method == '__call__':
-            if self.metadata is None:
-                metadata = None
-            else:
-                metadata = self.metadata
-                metadata['file'] = None
-                metadata["measurement_type"]="TRANS_TYPE"
-            new_name = ufunc.__name__+"("
-            values = []
-            for input in inputs:
-                if isinstance(input, Number):
-                    values.append(input)
-                    new_name = new_name +str(input)+", "
-                elif isinstance(input, Spectrum):
-                    values.append(input.measurement)
-                    new_name = new_name+input.name+", "
-                else:
-                    return NotImplemented
-            
-            new_name = new_name[:-2]+")"
-            if metadata is not None:
-                metadata['name'] = new_name
-            return Spectrum(name=new_name, measurement=ufunc(*values, **kwargs),metadata=metadata, measure_type = 'TRANS_TYPE')
+        if isinstance(other, Spectrum):
+            assert self.measure_type == other.measure_type
+            new_measurement = self.measurement.__add__(other.measurement).dropna()
+            new_name += other.name
         else:
-            return NotImplemented
+            new_measurement = self.measurement.__add__(other)
+        return Spectrum(name=new_name, measurement=new_measurement,
+                        measure_type=self.measure_type)
+    def __isub__(self, other):
+        pass
+    def __imul__(self, other):
+        pass
+    def __itruediv__(self, other):
+        pass
+    def __ifloordiv__(self, other):
+        pass
+    def __iiadd__(self, other):
+        pass
+    def __isub__(self, other):
+        pass
+    def __imul__(self, other):
+        pass
+    def __itruediv__(self, other):
+        pass
+    def __ifloordiv__(self, other):
+        pass
     
-    # wrapper for array operations
-    def __array__(self, dtype=None):
-        return self.measurement.values
-        
-    # def __isub__(self, other):
-    #     pass
-    # def __imul__(self, other):
-    #     pass
-    # def __itruediv__(self, other):
-    #     pass
-    # def __ifloordiv__(self, other):
-    #     pass
-    # def __iiadd__(self, other):
-    #     pass
-    # def __isub__(self, other):
-    #     pass
-    # def __imul__(self, other):
-    #     pass
-    # def __itruediv__(self, other):
-    #     pass
-    # def __ifloordiv__(self, other):
-    #     pass
-    
-
