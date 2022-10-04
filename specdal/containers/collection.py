@@ -293,9 +293,11 @@ unpredictable behavior."""
         
         """
         if fields is None:
-            fields = ['file', 'instrument_type', 'integration_time',
-                      'measurement_type', 'gps_time_tgt', 'gps_time_ref',
-                      'wavelength_range']
+            fields = []
+            for s in self.spectra:
+                for key in s.metadata.keys():
+                    if key not in fields:
+                        fields.append(key)
         meta_dict = {}
         for field in fields:
             meta_dict[field] = [s.metadata[field] if field in s.metadata
