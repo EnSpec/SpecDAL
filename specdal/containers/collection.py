@@ -344,17 +344,10 @@ unpredictable behavior."""
                     continue
                 filepath = os.path.join(dirpath, f)
                 try:
-                    #Add reflectance spectrum
                     spectrum = Spectrum(name=f_name, filepath=filepath,
                                         measure_type=measure_type,
                                         verbose=verbose)
-
                     self.append(spectrum)
-                    #Add radiance spectrum
-                    spectrum_radiance = Spectrum(name=f_name, filepath=filepath,
-                                        measure_type='tgt_radiance',
-                                        verbose=verbose)
-                    self.append_radiance(spectrum_radiance)
                 except UnicodeDecodeError:
                     logging.warning("Input file {} contains non-unicode "
                                     "character. Please inspect input file.".format(
@@ -367,13 +360,8 @@ unpredictable behavior."""
     def interpolate(self, spacing=1, method='slinear'):
         '''
 	'''
-        #Interpolate reflectance
         for spectrum in self.spectra:
             spectrum.interpolate(spacing, method)
-        #Interpolate radiance
-        for spectrum_rad in self.spectra_radiance:
-            spectrum_rad.interpolate(spacing, method)
-
     def stitch(self, method='max'):
         '''
 	'''
