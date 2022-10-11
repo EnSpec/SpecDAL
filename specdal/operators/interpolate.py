@@ -42,9 +42,9 @@ def interpolate(series, spacing=1, method='slinear'):
     for seq in get_monotonic_series(series):
         int_index = np.round(seq.index)
         # fill in gaps at 1 nm wavelength
-        int_index = int_index.reindex(np.arange(int_index.min(),
-                                                int_index.max() + 1,
-                                                spacing))[0]
+        int_index = pd.Index(np.arange(int_index.min(),
+                                       int_index.max() + 1,
+                                       spacing))
         tmp_index = seq.index.union(int_index)
         seq = seq.reindex(tmp_index)
         # interpolate
